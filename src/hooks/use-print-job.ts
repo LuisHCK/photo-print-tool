@@ -1,16 +1,4 @@
-import {
-    useEffect,
-    useMemo,
-    useState,
-    type ChangeEvent,
-    type Dispatch,
-    type SetStateAction
-} from 'react'
-import {
-    buildUniqueCustomPresetId,
-    loadCustomPresets,
-    saveCustomPresets
-} from '@/lib/custom-presets-storage'
+import { useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction } from 'react'
 import { LAYOUT_PRESETS } from '@/lib/layout-presets'
 import { PAPER_PRESETS } from '@/lib/paper-presets'
 import {
@@ -92,26 +80,6 @@ export interface PrintJobState {
     gapInput: NumericInputController
     paperPresets: PaperPreset[]
     layoutPresets: LayoutPreset[]
-    customPaperPresets: PaperPreset[]
-    customLayoutPresets: LayoutPreset[]
-}
-
-export interface PaperPresetDraft {
-    id?: PaperPresetId
-    name: string
-    widthMm: number
-    heightMm: number
-}
-
-export interface LayoutPresetDraft {
-    id?: LayoutPresetId
-    name: string
-    columns: number
-    rows: number
-    defaultCellWidthMm: number
-    defaultCellHeightMm: number
-    supportsAutoFlow: boolean
-    repeatSinglePhoto: boolean
 }
 
 export interface PrintJobActions {
@@ -126,88 +94,12 @@ export interface PrintJobActions {
     removePhoto: (photoId: string) => void
     updateActivePhotoRotation: (delta: number) => void
     updateActivePhotoFitMode: (nextFitMode: FitMode) => void
-    saveCustomPaperPreset: (draft: PaperPresetDraft) => PaperPresetId | null
-    deleteCustomPaperPreset: (presetId: PaperPresetId) => void
-    duplicatePaperPreset: (sourcePresetId: PaperPresetId) => PaperPresetId | null
-    saveCustomLayoutPreset: (draft: LayoutPresetDraft) => LayoutPresetId | null
-    deleteCustomLayoutPreset: (presetId: LayoutPresetId) => void
-    duplicateLayoutPreset: (sourcePresetId: LayoutPresetId) => LayoutPresetId | null
-}
-
-function uniqueById<T extends { id: string }>(items: T[]) {
-    const seen = new Set<string>()
-    return items.filter((item) => {
-        if (seen.has(item.id)) {
-            return false
-        }
-
-        seen.add(item.id)
-        return true
-    })
-}
-
-function isPositiveFiniteNumber(value: number) {
-    return Number.isFinite(value) && value > 0
-}
-
-function isPositiveInteger(value: number) {
-    return Number.isInteger(value) && value > 0
-}
-
-const MAX_LAYOUT_DIMENSION = 50
-
-function normalizePaperDraft(draft: PaperPresetDraft): PaperPresetDraft | null {
-    const name = draft.name.trim()
-
-    if (
-        !name ||
-        !isPositiveFiniteNumber(draft.widthMm) ||
-        !isPositiveFiniteNumber(draft.heightMm)
-    ) {
-        return null
-    }
-
-    return {
-        id: draft.id,
-        name,
-        widthMm: draft.widthMm,
-        heightMm: draft.heightMm
-    }
-}
-
-function normalizeLayoutDraft(draft: LayoutPresetDraft): LayoutPresetDraft | null {
-    const name = draft.name.trim()
-
-    if (
-        !name ||
-        !isPositiveInteger(draft.columns) ||
-        !isPositiveInteger(draft.rows) ||
-        draft.columns > MAX_LAYOUT_DIMENSION ||
-        draft.rows > MAX_LAYOUT_DIMENSION ||
-        !isPositiveFiniteNumber(draft.defaultCellWidthMm) ||
-        !isPositiveFiniteNumber(draft.defaultCellHeightMm)
-    ) {
-        return null
-    }
-
-    return {
-        id: draft.id,
-        name,
-        columns: draft.columns,
-        rows: draft.rows,
-        defaultCellWidthMm: draft.defaultCellWidthMm,
-        defaultCellHeightMm: draft.defaultCellHeightMm,
-        supportsAutoFlow: draft.supportsAutoFlow,
-        repeatSinglePhoto: draft.repeatSinglePhoto
-    }
 }
 
 export function usePrintJob(): {
     state: PrintJobState
     actions: PrintJobActions
 } {
-    const initialCustomPresets = useMemo(() => loadCustomPresets(), [])
-
     const [photos, setPhotos] = useState<PhotoItem[]>([])
     const [activePhotoId, setActivePhotoId] = useState<string | null>(null)
     const [paperId, setPaperId] = useState<PaperPresetId>('a4')
@@ -225,28 +117,9 @@ export function usePrintJob(): {
     )
     const [marginInput, setMarginInput] = useState<string>(() => formatNumericInput(8, 'cm'))
     const [gapInput, setGapInput] = useState<string>(() => formatNumericInput(4, 'cm'))
-    const [customPaperPresets, setCustomPaperPresets] = useState<PaperPreset[]>(
-        () => initialCustomPresets.papers
-    )
-    const [customLayoutPresets, setCustomLayoutPresets] = useState<LayoutPreset[]>(
-        () => initialCustomPresets.layouts
-    )
 
-    const paperPresets = useMemo(() => {
-        const builtInIds = new Set<string>(PAPER_PRESETS.map((preset) => preset.id))
-        const validCustom = customPaperPresets.filter((preset) => !builtInIds.has(preset.id))
-        return uniqueById([...PAPER_PRESETS, ...validCustom])
-    }, [customPaperPresets])
-
-    const layoutPresets = useMemo(() => {
-        const builtInIds = new Set<string>(LAYOUT_PRESETS.map((preset) => preset.id))
-        const validCustom = customLayoutPresets.filter((preset) => !builtInIds.has(preset.id))
-        return uniqueById([...LAYOUT_PRESETS, ...validCustom])
-    }, [customLayoutPresets])
-
-    useEffect(() => {
-        saveCustomPresets(customPaperPresets, customLayoutPresets)
-    }, [customLayoutPresets, customPaperPresets])
+    const paperPresets = PAPER_PRESETS
+    const layoutPresets = LAYOUT_PRESETS
 
     const selectedPaper =
         paperPresets.find((paperPreset) => paperPreset.id === paperId) ?? paperPresets[0]
@@ -377,124 +250,6 @@ export function usePrintJob(): {
         setPageIndex(0)
     }
 
-    function saveCustomPaperPreset(draft: PaperPresetDraft): PaperPresetId | null {
-        const normalized = normalizePaperDraft(draft)
-
-        if (!normalized) {
-            return null
-        }
-
-        const builtInIds = new Set<string>(PAPER_PRESETS.map((preset) => preset.id))
-
-        if (normalized.id && builtInIds.has(normalized.id)) {
-            return null
-        }
-
-        const existingIds = new Set(paperPresets.map((preset) => preset.id))
-        const nextId =
-            normalized.id ?? buildUniqueCustomPresetId('paper', normalized.name, existingIds)
-
-        const nextPreset: PaperPreset = {
-            id: nextId,
-            name: normalized.name,
-            widthMm: normalized.widthMm,
-            heightMm: normalized.heightMm
-        }
-
-        setCustomPaperPresets((previous) => {
-            const withoutTarget = previous.filter((preset) => preset.id !== nextId)
-            return [...withoutTarget, nextPreset]
-        })
-
-        setPaperId(nextId)
-        return nextId
-    }
-
-    function deleteCustomPaperPreset(presetId: PaperPresetId) {
-        setCustomPaperPresets((previous) => previous.filter((preset) => preset.id !== presetId))
-
-        if (paperId === presetId) {
-            setPaperId(PAPER_PRESETS[0].id)
-        }
-    }
-
-    function duplicatePaperPreset(sourcePresetId: PaperPresetId): PaperPresetId | null {
-        const sourcePreset = paperPresets.find((preset) => preset.id === sourcePresetId)
-
-        if (!sourcePreset) {
-            return null
-        }
-
-        return saveCustomPaperPreset({
-            name: `${sourcePreset.name} Copy`,
-            widthMm: sourcePreset.widthMm,
-            heightMm: sourcePreset.heightMm
-        })
-    }
-
-    function saveCustomLayoutPreset(draft: LayoutPresetDraft): LayoutPresetId | null {
-        const normalized = normalizeLayoutDraft(draft)
-
-        if (!normalized) {
-            return null
-        }
-
-        const builtInIds = new Set<string>(LAYOUT_PRESETS.map((preset) => preset.id))
-
-        if (normalized.id && builtInIds.has(normalized.id)) {
-            return null
-        }
-
-        const existingIds = new Set(layoutPresets.map((preset) => preset.id))
-        const nextId =
-            normalized.id ?? buildUniqueCustomPresetId('layout', normalized.name, existingIds)
-
-        const nextPreset: LayoutPreset = {
-            id: nextId,
-            name: normalized.name,
-            columns: normalized.columns,
-            rows: normalized.rows,
-            supportsAutoFlow: normalized.supportsAutoFlow,
-            repeatSinglePhoto: normalized.repeatSinglePhoto,
-            defaultCellWidthMm: normalized.defaultCellWidthMm,
-            defaultCellHeightMm: normalized.defaultCellHeightMm
-        }
-
-        setCustomLayoutPresets((previous) => {
-            const withoutTarget = previous.filter((preset) => preset.id !== nextId)
-            return [...withoutTarget, nextPreset]
-        })
-
-        updateLayout(nextId)
-        return nextId
-    }
-
-    function deleteCustomLayoutPreset(presetId: LayoutPresetId) {
-        setCustomLayoutPresets((previous) => previous.filter((preset) => preset.id !== presetId))
-
-        if (layoutId === presetId) {
-            updateLayout(LAYOUT_PRESETS[0].id)
-        }
-    }
-
-    function duplicateLayoutPreset(sourcePresetId: LayoutPresetId): LayoutPresetId | null {
-        const sourcePreset = layoutPresets.find((preset) => preset.id === sourcePresetId)
-
-        if (!sourcePreset) {
-            return null
-        }
-
-        return saveCustomLayoutPreset({
-            name: `${sourcePreset.name} Copy`,
-            columns: sourcePreset.columns,
-            rows: sourcePreset.rows,
-            supportsAutoFlow: sourcePreset.supportsAutoFlow,
-            repeatSinglePhoto: sourcePreset.repeatSinglePhoto,
-            defaultCellWidthMm: sourcePreset.defaultCellWidthMm,
-            defaultCellHeightMm: sourcePreset.defaultCellHeightMm
-        })
-    }
-
     function updateUnit(nextUnit: Unit) {
         setUnit(nextUnit)
         setCellWidthInput(formatNumericInput(cellWidthMm, nextUnit))
@@ -577,9 +332,7 @@ export function usePrintJob(): {
         ),
         gapInput: createNumericInputController(gapInput, setGapInput, gapMm, setGapMm),
         paperPresets,
-        layoutPresets,
-        customPaperPresets,
-        customLayoutPresets
+        layoutPresets
     }
 
     const actions: PrintJobActions = {
@@ -593,13 +346,7 @@ export function usePrintJob(): {
         togglePhotoSelection,
         removePhoto,
         updateActivePhotoRotation,
-        updateActivePhotoFitMode,
-        saveCustomPaperPreset,
-        deleteCustomPaperPreset,
-        duplicatePaperPreset,
-        saveCustomLayoutPreset,
-        deleteCustomLayoutPreset,
-        duplicateLayoutPreset
+        updateActivePhotoFitMode
     }
 
     return { state, actions }

@@ -6,7 +6,6 @@ Photo Print Tool is a web app for preparing photo print jobs with predictable ph
 Primary MVP capabilities:
 - Multi-photo selection
 - Layout presets
-- Custom presets (paper + layout)
 - Precise print size control
 - Unit switching (`mm`, `cm`, `in`)
 - Common paper sizes
@@ -95,7 +94,6 @@ When adding a new feature, keep this pattern:
 - Browser printing cannot fully control printer hardware settings.
 - Final physical output may vary by printer driver scaling.
 - Users should print with scaling disabled (`Actual size` / `100%`) for best accuracy.
-- Custom presets are stored in browser `localStorage` (device/browser specific).
 
 ## Suggested next refactor
 If features continue to grow, introduce `features/*` modules around current panels/hooks while keeping `src/lib/*` as the source of truth for print math.

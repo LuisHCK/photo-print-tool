@@ -60,8 +60,6 @@ function App() {
                     activePhoto={state.activePhoto}
                     paperPresets={state.paperPresets}
                     layoutPresets={state.layoutPresets}
-                    customPaperPresets={state.customPaperPresets}
-                    customLayoutPresets={state.customLayoutPresets}
                     widthInput={state.widthInput}
                     heightInput={state.heightInput}
                     marginInput={state.marginInput}
@@ -72,12 +70,6 @@ function App() {
                     onUnitChange={actions.updateUnit}
                     onActivePhotoRotate={actions.updateActivePhotoRotation}
                     onActivePhotoFitModeChange={actions.updateActivePhotoFitMode}
-                    onSaveCustomPaperPreset={actions.saveCustomPaperPreset}
-                    onDeleteCustomPaperPreset={actions.deleteCustomPaperPreset}
-                    onDuplicatePaperPreset={actions.duplicatePaperPreset}
-                    onSaveCustomLayoutPreset={actions.saveCustomLayoutPreset}
-                    onDeleteCustomLayoutPreset={actions.deleteCustomLayoutPreset}
-                    onDuplicateLayoutPreset={actions.duplicateLayoutPreset}
                 />
             </main>
 
