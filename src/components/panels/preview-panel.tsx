@@ -20,6 +20,7 @@ interface PreviewPanelProps {
     gridHeightMm: number
     hasOverflow: boolean
     ppiWarnings: Array<{ photo: PhotoItem; ppi: number }>
+    activePhotoId: string | null
     onPageIndexChange: Dispatch<SetStateAction<number>>
 }
 
@@ -38,6 +39,7 @@ export function PreviewPanel({
     gridHeightMm,
     hasOverflow,
     ppiWarnings,
+    activePhotoId,
     onPageIndexChange
 }: PreviewPanelProps) {
     const { t } = useTranslation()
@@ -104,7 +106,11 @@ export function PreviewPanel({
                             return (
                                 <div
                                     key={`${currentPage.pageIndex}-${slot.slotIndex}`}
-                                    className="absolute overflow-hidden border border-neutral-300"
+                                    className={`absolute overflow-hidden border ${
+                                        slot.photo?.id === activePhotoId
+                                            ? 'preview-selection-highlight border-primary/60 ring-1 ring-primary/40'
+                                            : 'border-neutral-300'
+                                    }`}
                                     style={{
                                         left: `${offsetX * previewScale}px`,
                                         top: `${offsetY * previewScale}px`,

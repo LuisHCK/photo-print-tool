@@ -57,8 +57,10 @@ export function PhotosPanel({
                             photos.map((photo) => (
                                 <div
                                     key={photo.id}
-                                    className={`flex gap-2 rounded-md border p-2 ${
-                                        photo.id === activePhotoId ? 'ring-2 ring-primary/40' : ''
+                                    className={`flex items-center gap-2 overflow-hidden rounded-md border p-2 transition-colors ${
+                                        photo.id === activePhotoId
+                                            ? 'border-primary/50 bg-muted/40'
+                                            : 'border-border'
                                     }`}
                                 >
                                     <button
@@ -73,7 +75,7 @@ export function PhotosPanel({
                                         />
                                     </button>
                                     <div className="flex min-w-0 flex-1 flex-col gap-1">
-                                        <div className="truncate text-sm font-medium">
+                                        <div className="truncate text-sm font-medium" title={photo.name}>
                                             {photo.name}
                                         </div>
                                         <label className="text-muted-foreground flex items-center gap-2 text-xs">
@@ -94,6 +96,7 @@ export function PhotosPanel({
                                         type="button"
                                         variant="ghost"
                                         size="sm"
+                                        className="shrink-0"
                                         onClick={() => onRemovePhoto(photo.id)}
                                     >
                                         {t('photos.remove')}

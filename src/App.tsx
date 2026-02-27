@@ -85,6 +85,7 @@ function App() {
                     gridHeightMm={state.gridHeightMm}
                     hasOverflow={state.hasOverflow}
                     ppiWarnings={state.ppiWarnings}
+                    activePhotoId={state.activePhotoId}
                     onPageIndexChange={actions.setPageIndex}
                 />
 

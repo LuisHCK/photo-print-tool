@@ -30,4 +30,9 @@
         break-after: auto;
         page-break-after: auto;
     }
+
+    .preview-selection-highlight {
+        border-color: transparent !important;
+        box-shadow: none !important;
+    }
 }
