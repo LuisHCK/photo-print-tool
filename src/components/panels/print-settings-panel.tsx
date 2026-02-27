@@ -56,22 +56,6 @@ interface PrintSettingsPanelProps {
     onDeleteSettingsProfile: (profileId: string) => void
 }
 
-function NumericField({ controller }: { controller: NumericInputController }) {
-    return (
-        <Input
-            value={controller.value}
-            onBlur={controller.onBlur}
-            onChange={(event) => controller.onChange(event.target.value)}
-            onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                    controller.onEnter()
-                    event.currentTarget.blur()
-                }
-            }}
-        />
-    )
-}
-
 export function PrintSettingsPanel({
     paperId,
     layoutId,
@@ -207,8 +191,34 @@ export function PrintSettingsPanel({
                 <div className="space-y-2">
                     <Label>{t('settings.exactPrintSize', { unit })}</Label>
                     <div className="grid grid-cols-2 gap-3">
-                        <NumericField controller={widthInput} />
-                        <NumericField controller={heightInput} />
+                        <Input
+                            type="number"
+                            step="any"
+                            min={0}
+                            value={widthInput.value}
+                            onBlur={widthInput.onBlur}
+                            onChange={(event) => widthInput.onChange(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    widthInput.onEnter()
+                                    event.currentTarget.blur()
+                                }
+                            }}
+                        />
+                        <Input
+                            type="number"
+                            step="any"
+                            min={0}
+                            value={heightInput.value}
+                            onBlur={heightInput.onBlur}
+                            onChange={(event) => heightInput.onChange(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    heightInput.onEnter()
+                                    event.currentTarget.blur()
+                                }
+                            }}
+                        />
                     </div>
                     <div className="text-muted-foreground text-xs">{t('settings.widthHeight')}</div>
                 </div>
@@ -216,8 +226,34 @@ export function PrintSettingsPanel({
                 <div className="space-y-2">
                     <Label>{t('settings.pageSpacing', { unit })}</Label>
                     <div className="grid grid-cols-2 gap-3">
-                        <NumericField controller={marginInput} />
-                        <NumericField controller={gapInput} />
+                        <Input
+                            type="number"
+                            step="any"
+                            min={0}
+                            value={marginInput.value}
+                            onBlur={marginInput.onBlur}
+                            onChange={(event) => marginInput.onChange(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    marginInput.onEnter()
+                                    event.currentTarget.blur()
+                                }
+                            }}
+                        />
+                        <Input
+                            type="number"
+                            step="any"
+                            min={0}
+                            value={gapInput.value}
+                            onBlur={gapInput.onBlur}
+                            onChange={(event) => gapInput.onChange(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    gapInput.onEnter()
+                                    event.currentTarget.blur()
+                                }
+                            }}
+                        />
                     </div>
                     <div className="text-muted-foreground text-xs">{t('settings.marginGap')}</div>
                 </div>

@@ -35,13 +35,16 @@ export function PhotosPanel({
             </CardHeader>
             <CardContent className="space-y-3">
                 <div className="space-y-2">
-                    <Label htmlFor="photo-upload">{t('photos.import')}</Label>
+                    <Label htmlFor="photo-upload" className="cursor-pointer">
+                        {t('photos.import')}
+                    </Label>
                     <Input
                         id="photo-upload"
                         type="file"
                         multiple
                         accept="image/*"
                         onChange={onFileUpload}
+                        className="cursor-pointer"
                     />
                 </div>
 
@@ -75,7 +78,10 @@ export function PhotosPanel({
                                         />
                                     </button>
                                     <div className="flex items-start min-w-0 flex-1 flex-col gap-1">
-                                        <div className="truncate w-40 text-sm font-medium" title={photo.name}>
+                                        <div
+                                            className="truncate w-40 text-sm font-medium"
+                                            title={photo.name}
+                                        >
                                             {photo.name}
                                         </div>
                                         <label className="text-muted-foreground flex items-center gap-2 text-xs">
