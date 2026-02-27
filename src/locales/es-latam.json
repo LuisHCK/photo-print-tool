@@ -7,6 +7,12 @@
     "title": "Herramienta de Impresión de Fotos",
     "subtitle": "Flujo profesional de impresión para trabajos diarios",
     "print": "Imprimir",
+    "settings": "Configuración",
+    "theme": "Tema",
+    "themeToggle": {
+      "switchToDark": "Modo oscuro",
+      "switchToLight": "Modo claro"
+    },
     "language": "Idioma",
     "languageOptions": {
       "en-US": "English (US)",

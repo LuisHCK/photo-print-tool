@@ -1,28 +1,12 @@
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
+import { AppHeader } from '@/components/app-header'
 import { PhotosPanel } from '@/components/panels/photos-panel'
 import { PreviewPanel } from '@/components/panels/preview-panel'
 import { PrintSettingsPanel } from '@/components/panels/print-settings-panel'
 import { PrintPages } from '@/components/print/print-pages'
 import { usePrintJob } from '@/hooks/use-print-job'
-import {
-    SUPPORTED_LANGUAGES,
-    getCurrentSupportedLanguage,
-    type SupportedLanguage
-} from '@/i18n'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select'
-import { useTranslation } from 'react-i18next'
 
 function App() {
-    const { t, i18n } = useTranslation()
     const { state, actions } = usePrintJob()
-    const currentLanguage = getCurrentSupportedLanguage()
 
     function printNow() {
         window.print()
@@ -30,35 +14,7 @@ function App() {
 
     return (
         <div className="min-h-screen bg-muted/20">
-            <header className="no-print flex items-center justify-between border-b bg-card px-6 py-3">
-                <div>
-                    <h1 className="text-lg font-semibold">{t('app.title')}</h1>
-                    <p className="text-muted-foreground text-sm">
-                        {t('app.subtitle')}
-                    </p>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <Label className="text-sm">{t('app.language')}</Label>
-                        <Select
-                            value={currentLanguage}
-                            onValueChange={(next) => i18n.changeLanguage(next as SupportedLanguage)}
-                        >
-                            <SelectTrigger className="w-[210px]">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {SUPPORTED_LANGUAGES.map((language) => (
-                                    <SelectItem key={language} value={language}>
-                                        {t(`app.languageOptions.${language}`)}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Button onClick={printNow}>{t('app.print')}</Button>
-                </div>
-            </header>
+            <AppHeader onPrint={printNow} />
 
             <main className="no-print grid grid-cols-1 gap-4 p-4 xl:grid-cols-[320px_1fr_360px]">
                 <PhotosPanel

@@ -7,6 +7,12 @@
     "title": "Photo Print Tool",
     "subtitle": "Professional print workflow for daily photo jobs",
     "print": "Print",
+    "settings": "Settings",
+    "theme": "Theme",
+    "themeToggle": {
+      "switchToDark": "Dark mode",
+      "switchToLight": "Light mode"
+    },
     "language": "Language",
     "languageOptions": {
       "en-US": "English (US)",
