@@ -87,6 +87,7 @@ function App() {
                     ppiWarnings={state.ppiWarnings}
                     activePhotoId={state.activePhotoId}
                     onPageIndexChange={actions.setPageIndex}
+                    onSetActivePhotoId={actions.setActivePhotoId}
                 />
 
                 <PrintSettingsPanel

@@ -22,6 +22,7 @@ interface PreviewPanelProps {
     ppiWarnings: Array<{ photo: PhotoItem; ppi: number }>
     activePhotoId: string | null
     onPageIndexChange: Dispatch<SetStateAction<number>>
+    onSetActivePhotoId: (photoId: string) => void
 }
 
 export function PreviewPanel({
@@ -40,7 +41,8 @@ export function PreviewPanel({
     hasOverflow,
     ppiWarnings,
     activePhotoId,
-    onPageIndexChange
+    onPageIndexChange,
+    onSetActivePhotoId
 }: PreviewPanelProps) {
     const { t } = useTranslation()
 
@@ -111,6 +113,7 @@ export function PreviewPanel({
                                             ? 'preview-selection-highlight border-primary/60 ring-1 ring-primary/40'
                                             : 'border-neutral-300'
                                     }`}
+                                    onClick={() => slot.photo && onSetActivePhotoId(slot.photo.id)}
                                     style={{
                                         left: `${offsetX * previewScale}px`,
                                         top: `${offsetY * previewScale}px`,

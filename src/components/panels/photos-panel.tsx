@@ -65,7 +65,7 @@ export function PhotosPanel({
                                 >
                                     <button
                                         type="button"
-                                        className="h-14 w-14 shrink-0 overflow-hidden rounded border"
+                                        className="h-14 w-14 shrink-0 overflow-hidden rounded border cursor-pointer"
                                         onClick={() => onSetActivePhotoId(photo.id)}
                                     >
                                         <img
@@ -74,8 +74,8 @@ export function PhotosPanel({
                                             className="h-full w-full object-cover"
                                         />
                                     </button>
-                                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                                        <div className="truncate text-sm font-medium" title={photo.name}>
+                                    <div className="flex items-start min-w-0 flex-1 flex-col gap-1">
+                                        <div className="truncate w-40 text-sm font-medium" title={photo.name}>
                                             {photo.name}
                                         </div>
                                         <label className="text-muted-foreground flex items-center gap-2 text-xs">
@@ -91,16 +91,15 @@ export function PhotosPanel({
                                             />
                                             {t('photos.include')}
                                         </label>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => onRemovePhoto(photo.id)}
+                                        >
+                                            {t('photos.remove')}
+                                        </Button>
                                     </div>
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="shrink-0"
-                                        onClick={() => onRemovePhoto(photo.id)}
-                                    >
-                                        {t('photos.remove')}
-                                    </Button>
                                 </div>
                             ))
                         )}
