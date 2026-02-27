@@ -3,6 +3,8 @@
 Photo Print Tool is a React app for creating precise, repeatable photo print layouts.
 It’s built for real print workflows where dimensions, spacing, and consistency matter.
 
+![Photo-Print-Tool-Precise-Print-Layouts-02-27-2026_01_37_PM](https://github.com/user-attachments/assets/09866340-b85f-4395-ad63-969f820d0d07)
+
 ## Highlights
 
 - Exact print sizing with unit support (`mm`, `cm`, `in`)
