@@ -10,6 +10,7 @@ import {
     SelectValue
 } from '@/components/ui/select'
 import type { PrintSettingsProfile } from '@/types/print'
+import { useTranslation } from 'react-i18next'
 
 interface PrintSettingsProfilesSectionProps {
     profiles: PrintSettingsProfile[]
@@ -29,6 +30,7 @@ export function PrintSettingsProfilesSection({
     const [selectedProfileId, setSelectedProfileId] = useState('')
     const [error, setError] = useState('')
     const [notice, setNotice] = useState('')
+    const { t } = useTranslation()
 
     const selectedProfile = useMemo(
         () => profiles.find((profile) => profile.id === selectedProfileId) ?? null,
@@ -38,21 +40,21 @@ export function PrintSettingsProfilesSection({
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <Label>Print setting profiles</Label>
+                <Label>{t('profiles.title')}</Label>
                 <Button type="button" variant="outline" size="sm" onClick={() => setExpanded((v) => !v)}>
-                    {expanded ? 'Hide' : 'Manage'}
+                    {expanded ? t('profiles.hide') : t('profiles.manage')}
                 </Button>
             </div>
 
             {expanded ? (
                 <div className="space-y-3 rounded-md border p-3">
                     <div className="space-y-2">
-                        <Label className="text-xs">Save current setup</Label>
+                        <Label className="text-xs">{t('profiles.saveCurrent')}</Label>
                         <div className="flex gap-2">
                             <Input
                                 value={profileName}
                                 onChange={(event) => setProfileName(event.target.value)}
-                                placeholder="Profile name"
+                                placeholder={t('profiles.profileNamePlaceholder')}
                             />
                             <Button
                                 type="button"
@@ -60,7 +62,7 @@ export function PrintSettingsProfilesSection({
                                 onClick={() => {
                                     const result = onSaveProfile(profileName)
                                     if (!result) {
-                                        setError('Enter a valid profile name.')
+                                        setError(t('profiles.errorInvalidName'))
                                         setNotice('')
                                         return
                                     }
@@ -68,23 +70,23 @@ export function PrintSettingsProfilesSection({
                                     setError('')
                                     setNotice(
                                         result.mode === 'created'
-                                            ? 'Profile saved.'
-                                            : 'Profile updated.'
+                                            ? t('profiles.noticeSaved')
+                                            : t('profiles.noticeUpdated')
                                     )
                                     setSelectedProfileId(result.id)
                                     setProfileName('')
                                 }}
                             >
-                                Save
+                                {t('profiles.save')}
                             </Button>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <Label className="text-xs">Saved profiles</Label>
+                        <Label className="text-xs">{t('profiles.savedProfiles')}</Label>
                         <Select value={selectedProfileId} onValueChange={setSelectedProfileId}>
                             <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Select profile" />
+                                <SelectValue placeholder={t('profiles.selectProfile')} />
                             </SelectTrigger>
                             <SelectContent>
                                 {profiles.map((profile) => (
@@ -109,10 +111,10 @@ export function PrintSettingsProfilesSection({
 
                                 onLoadProfile(selectedProfile.id)
                                 setError('')
-                                setNotice('Profile loaded.')
+                                setNotice(t('profiles.noticeLoaded'))
                             }}
                         >
-                            Load
+                            {t('profiles.load')}
                         </Button>
                         <Button
                             type="button"
@@ -127,10 +129,10 @@ export function PrintSettingsProfilesSection({
                                 onDeleteProfile(selectedProfile.id)
                                 setSelectedProfileId('')
                                 setError('')
-                                setNotice('Profile deleted.')
+                                setNotice(t('profiles.noticeDeleted'))
                             }}
                         >
-                            Delete
+                            {t('profiles.delete')}
                         </Button>
                     </div>
 

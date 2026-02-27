@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "title": "Photo Print Tool | Precise Print Layouts",
+    "description": "Prepare precise photo print jobs with customizable paper and layout presets, exact physical dimensions, and browser-ready print output."
+  },
+  "app": {
+    "title": "Photo Print Tool",
+    "subtitle": "Professional print workflow for daily photo jobs",
+    "print": "Print",
+    "language": "Language",
+    "languageOptions": {
+      "en-US": "English (US)",
+      "es-419": "Español (Latinoamérica)"
+    }
+  },
+  "photos": {
+    "title": "Photos",
+    "description": "Select multiple photos for this print job.",
+    "import": "Import photos",
+    "noPhotos": "No photos selected yet.",
+    "include": "Include",
+    "remove": "Remove"
+  },
+  "preview": {
+    "title": "Preview",
+    "emptyDescription": "Add and select photos to generate preview pages.",
+    "pageOf": "Page {{current}} of {{total}}",
+    "slotsPerPage": "Slots per page: {{count}}",
+    "previous": "Previous",
+    "next": "Next",
+    "empty": "Empty",
+    "tip": "Tip: in the browser print dialog, disable scale options like “Fit to page” to keep exact physical dimensions.",
+    "overflow": "Layout overflow: current size and spacing exceed printable area.",
+    "lowQualityRisk": "Low quality risk: {{name}} ~{{ppi}} PPI at current print size."
+  },
+  "settings": {
+    "title": "Print settings",
+    "description": "Layout, exact size, units, and photo fit controls.",
+    "paperSize": "Paper size",
+    "layout": "Layout",
+    "orientation": "Orientation",
+    "units": "Units",
+    "portrait": "Portrait",
+    "landscape": "Landscape",
+    "copiesPerPage": "Copies per page",
+    "columnsRows": "Columns / Rows",
+    "exactPrintSize": "Exact print size ({{unit}})",
+    "widthHeight": "Width / Height",
+    "pageSpacing": "Page spacing ({{unit}})",
+    "marginGap": "Margin / Gap",
+    "selectedPhotoControls": "Selected photo controls",
+    "pickPhoto": "Pick a photo from the left panel to edit fit and rotation.",
+    "rotateMinus": "Rotate -90°",
+    "rotatePlus": "Rotate +90°",
+    "fill": "Fill (crop)",
+    "fit": "Fit (contain)",
+    "manualImagePosition": "Manual image position",
+    "moveUp": "Move Up (%)",
+    "moveRight": "Move Right (%)",
+    "moveDown": "Move Down (%)",
+    "moveLeft": "Move Left (%)"
+  },
+  "profiles": {
+    "title": "Print setting profiles",
+    "manage": "Manage",
+    "hide": "Hide",
+    "saveCurrent": "Save current setup",
+    "profileNamePlaceholder": "Profile name",
+    "save": "Save",
+    "savedProfiles": "Saved profiles",
+    "selectProfile": "Select profile",
+    "load": "Load",
+    "delete": "Delete",
+    "errorInvalidName": "Enter a valid profile name.",
+    "noticeSaved": "Profile saved.",
+    "noticeUpdated": "Profile updated.",
+    "noticeLoaded": "Profile loaded.",
+    "noticeDeleted": "Profile deleted."
+  },
+  "presets": {
+    "paper": {
+      "a4": "A4",
+      "a5": "A5",
+      "letter": "Letter",
+      "legal": "Legal",
+      "4x6": "4 x 6 in",
+      "5x7": "5 x 7 in",
+      "8x10": "8 x 10 in"
+    },
+    "layout": {
+      "single": "Full Page (1)",
+      "two": "2 Photos",
+      "four": "4 Photos",
+      "contact": "Contact Sheet",
+      "passport": "Passport / ID"
+    }
+  }
+}

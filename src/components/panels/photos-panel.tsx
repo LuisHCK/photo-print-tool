@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import type { PhotoItem } from '@/types/print'
+import { useTranslation } from 'react-i18next'
 
 interface PhotosPanelProps {
     photos: PhotoItem[]
@@ -24,15 +25,17 @@ export function PhotosPanel({
     onTogglePhotoSelection,
     onRemovePhoto
 }: PhotosPanelProps) {
+    const { t } = useTranslation()
+
     return (
         <Card className="py-4">
             <CardHeader>
-                <CardTitle>Photos</CardTitle>
-                <CardDescription>Select multiple photos for this print job.</CardDescription>
+                <CardTitle>{t('photos.title')}</CardTitle>
+                <CardDescription>{t('photos.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
                 <div className="space-y-2">
-                    <Label htmlFor="photo-upload">Import photos</Label>
+                    <Label htmlFor="photo-upload">{t('photos.import')}</Label>
                     <Input
                         id="photo-upload"
                         type="file"
@@ -48,7 +51,7 @@ export function PhotosPanel({
                     <div className="space-y-2">
                         {photos.length === 0 ? (
                             <div className="text-muted-foreground rounded-md border border-dashed p-4 text-sm">
-                                No photos selected yet.
+                                {t('photos.noPhotos')}
                             </div>
                         ) : (
                             photos.map((photo) => (
@@ -84,7 +87,7 @@ export function PhotosPanel({
                                                     )
                                                 }
                                             />
-                                            Include
+                                            {t('photos.include')}
                                         </label>
                                     </div>
                                     <Button
@@ -93,7 +96,7 @@ export function PhotosPanel({
                                         size="sm"
                                         onClick={() => onRemovePhoto(photo.id)}
                                     >
-                                        Remove
+                                        {t('photos.remove')}
                                     </Button>
                                 </div>
                             ))

@@ -24,6 +24,7 @@ import type {
     PhotoItem,
     Unit
 } from '@/types/print'
+import { useTranslation } from 'react-i18next'
 
 interface PrintSettingsPanelProps {
     paperId: PaperPresetId
@@ -100,17 +101,17 @@ export function PrintSettingsPanel({
     onLoadSettingsProfile,
     onDeleteSettingsProfile
 }: PrintSettingsPanelProps) {
+    const { t } = useTranslation()
+
     return (
         <Card className="py-4">
             <CardHeader>
-                <CardTitle>Print settings</CardTitle>
-                <CardDescription>
-                    Layout, exact size, units, and photo fit controls.
-                </CardDescription>
+                <CardTitle>{t('settings.title')}</CardTitle>
+                <CardDescription>{t('settings.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2">
-                    <Label>Paper size</Label>
+                    <Label>{t('settings.paperSize')}</Label>
                     <Select value={paperId} onValueChange={onPaperIdChange}>
                         <SelectTrigger className="w-full">
                             <SelectValue />
@@ -118,7 +119,9 @@ export function PrintSettingsPanel({
                         <SelectContent>
                             {paperPresets.map((paperPreset) => (
                                 <SelectItem key={paperPreset.id} value={paperPreset.id}>
-                                    {paperPreset.name}
+                                    {t(`presets.paper.${paperPreset.id}`, {
+                                        defaultValue: paperPreset.name
+                                    })}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -126,7 +129,7 @@ export function PrintSettingsPanel({
                 </div>
 
                 <div className="space-y-2">
-                    <Label>Layout</Label>
+                    <Label>{t('settings.layout')}</Label>
                     <Select value={layoutId} onValueChange={onLayoutChange}>
                         <SelectTrigger className="w-full">
                             <SelectValue />
@@ -134,7 +137,9 @@ export function PrintSettingsPanel({
                         <SelectContent>
                             {layoutPresets.map((layoutPreset) => (
                                 <SelectItem key={layoutPreset.id} value={layoutPreset.id}>
-                                    {layoutPreset.name}
+                                    {t(`presets.layout.${layoutPreset.id}`, {
+                                        defaultValue: layoutPreset.name
+                                    })}
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -143,7 +148,7 @@ export function PrintSettingsPanel({
 
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                        <Label>Orientation</Label>
+                        <Label>{t('settings.orientation')}</Label>
                         <Select
                             value={orientation}
                             onValueChange={(nextValue) =>
@@ -154,14 +159,14 @@ export function PrintSettingsPanel({
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="portrait">Portrait</SelectItem>
-                                <SelectItem value="landscape">Landscape</SelectItem>
+                                <SelectItem value="portrait">{t('settings.portrait')}</SelectItem>
+                                <SelectItem value="landscape">{t('settings.landscape')}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <div className="space-y-2">
-                        <Label>Units</Label>
+                        <Label>{t('settings.units')}</Label>
                         <Select
                             value={unit}
                             onValueChange={(nextValue) => onUnitChange(nextValue as Unit)}
@@ -179,7 +184,7 @@ export function PrintSettingsPanel({
                 </div>
 
                 <div className="space-y-2">
-                    <Label>Copies per page</Label>
+                    <Label>{t('settings.copiesPerPage')}</Label>
                     <div className="grid grid-cols-2 gap-3">
                         <Input
                             type="number"
@@ -196,31 +201,31 @@ export function PrintSettingsPanel({
                             onChange={(event) => onLayoutRowsChange(Number(event.target.value))}
                         />
                     </div>
-                    <div className="text-muted-foreground text-xs">Columns / Rows</div>
+                    <div className="text-muted-foreground text-xs">{t('settings.columnsRows')}</div>
                 </div>
 
                 <div className="space-y-2">
-                    <Label>Exact print size ({unit})</Label>
+                    <Label>{t('settings.exactPrintSize', { unit })}</Label>
                     <div className="grid grid-cols-2 gap-3">
                         <NumericField controller={widthInput} />
                         <NumericField controller={heightInput} />
                     </div>
-                    <div className="text-muted-foreground text-xs">Width / Height</div>
+                    <div className="text-muted-foreground text-xs">{t('settings.widthHeight')}</div>
                 </div>
 
                 <div className="space-y-2">
-                    <Label>Page spacing ({unit})</Label>
+                    <Label>{t('settings.pageSpacing', { unit })}</Label>
                     <div className="grid grid-cols-2 gap-3">
                         <NumericField controller={marginInput} />
                         <NumericField controller={gapInput} />
                     </div>
-                    <div className="text-muted-foreground text-xs">Margin / Gap</div>
+                    <div className="text-muted-foreground text-xs">{t('settings.marginGap')}</div>
                 </div>
 
                 <Separator />
 
                 <div className="space-y-2">
-                    <Label>Selected photo controls</Label>
+                    <Label>{t('settings.selectedPhotoControls')}</Label>
                     {activePhoto ? (
                         <>
                             <div className="text-muted-foreground truncate text-xs">
@@ -232,14 +237,14 @@ export function PrintSettingsPanel({
                                     variant="outline"
                                     onClick={() => onActivePhotoRotate(-90)}
                                 >
-                                    Rotate -90°
+                                    {t('settings.rotateMinus')}
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     onClick={() => onActivePhotoRotate(90)}
                                 >
-                                    Rotate +90°
+                                    {t('settings.rotatePlus')}
                                 </Button>
                             </div>
                             <Select
@@ -252,14 +257,16 @@ export function PrintSettingsPanel({
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="fill">Fill (crop)</SelectItem>
-                                    <SelectItem value="fit">Fit (contain)</SelectItem>
+                                    <SelectItem value="fill">{t('settings.fill')}</SelectItem>
+                                    <SelectItem value="fit">{t('settings.fit')}</SelectItem>
                                 </SelectContent>
                             </Select>
 
                             <div className="space-y-2 rounded-md border p-3">
                                 <div className="flex items-center justify-between">
-                                    <Label className="text-sm">Manual image position</Label>
+                                    <Label className="text-sm">
+                                        {t('settings.manualImagePosition')}
+                                    </Label>
                                     <Switch
                                         checked={activePhoto.manualPositionEnabled}
                                         onCheckedChange={onActivePhotoManualPositionEnabledChange}
@@ -269,7 +276,7 @@ export function PrintSettingsPanel({
                                 {activePhoto.manualPositionEnabled ? (
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Move Up (%)</Label>
+                                            <Label className="text-xs">{t('settings.moveUp')}</Label>
                                             <Input
                                                 type="number"
                                                 min={0}
@@ -285,7 +292,7 @@ export function PrintSettingsPanel({
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Move Right (%)</Label>
+                                            <Label className="text-xs">{t('settings.moveRight')}</Label>
                                             <Input
                                                 type="number"
                                                 min={0}
@@ -301,7 +308,7 @@ export function PrintSettingsPanel({
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Move Down (%)</Label>
+                                            <Label className="text-xs">{t('settings.moveDown')}</Label>
                                             <Input
                                                 type="number"
                                                 min={0}
@@ -317,7 +324,7 @@ export function PrintSettingsPanel({
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <Label className="text-xs">Move Left (%)</Label>
+                                            <Label className="text-xs">{t('settings.moveLeft')}</Label>
                                             <Input
                                                 type="number"
                                                 min={0}
@@ -338,7 +345,7 @@ export function PrintSettingsPanel({
                         </>
                     ) : (
                         <p className="text-muted-foreground text-sm">
-                            Pick a photo from the left panel to edit fit and rotation.
+                            {t('settings.pickPhoto')}
                         </p>
                     )}
                 </div>

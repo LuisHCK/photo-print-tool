@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getPhotoObjectPosition } from '@/lib/print-layout'
 import type { PageAssignment, PhotoItem } from '@/types/print'
+import { useTranslation } from 'react-i18next'
 
 interface PreviewPanelProps {
     pages: PageAssignment[]
@@ -39,20 +40,22 @@ export function PreviewPanel({
     ppiWarnings,
     onPageIndexChange
 }: PreviewPanelProps) {
+    const { t } = useTranslation()
+
     return (
         <Card className="py-4">
             <CardHeader>
-                <CardTitle>Preview</CardTitle>
+                <CardTitle>{t('preview.title')}</CardTitle>
                 <CardDescription>
                     {pages.length === 0
-                        ? 'Add and select photos to generate preview pages.'
-                        : `Page ${pageIndex + 1} of ${pages.length}`}
+                        ? t('preview.emptyDescription')
+                        : t('preview.pageOf', { current: pageIndex + 1, total: pages.length })}
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                     <div className="text-muted-foreground text-sm">
-                        Slots per page: {slotsPerPage}
+                        {t('preview.slotsPerPage', { count: slotsPerPage })}
                     </div>
                     <div className="flex gap-2">
                         <Button
@@ -63,7 +66,7 @@ export function PreviewPanel({
                                 onPageIndexChange((previous) => Math.max(previous - 1, 0))
                             }
                         >
-                            Previous
+                            {t('preview.previous')}
                         </Button>
                         <Button
                             variant="outline"
@@ -75,7 +78,7 @@ export function PreviewPanel({
                                 )
                             }
                         >
-                            Next
+                            {t('preview.next')}
                         </Button>
                     </div>
                 </div>
@@ -126,7 +129,7 @@ export function PreviewPanel({
                                         />
                                     ) : (
                                         <div className="flex h-full items-center justify-center text-xs text-neutral-400">
-                                            Empty
+                                            {t('preview.empty')}
                                         </div>
                                     )}
                                 </div>
@@ -136,19 +139,16 @@ export function PreviewPanel({
                 </div>
 
                 <div className="text-muted-foreground space-y-1 text-xs">
-                    <p>
-                        Tip: in the browser print dialog, disable scale options like “Fit to page”
-                        to keep exact physical dimensions.
-                    </p>
+                    <p>{t('preview.tip')}</p>
                     {hasOverflow ? (
-                        <p className="text-destructive">
-                            Layout overflow: current size and spacing exceed printable area.
-                        </p>
+                        <p className="text-destructive">{t('preview.overflow')}</p>
                     ) : null}
                     {ppiWarnings.map((warning) => (
                         <p key={warning.photo.id} className="text-amber-700">
-                            Low quality risk: {warning.photo.name} ~{Math.round(warning.ppi)} PPI at
-                            current print size.
+                            {t('preview.lowQualityRisk', {
+                                name: warning.photo.name,
+                                ppi: Math.round(warning.ppi)
+                            })}
                         </p>
                     ))}
                 </div>

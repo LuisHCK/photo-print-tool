@@ -1,0 +1,98 @@
+{
+  "meta": {
+    "title": "Herramienta de Impresión de Fotos | Diseños Precisos",
+    "description": "Prepara trabajos de impresión fotográfica precisos con presets de papel y diseño personalizables, dimensiones físicas exactas y salida lista para imprimir desde el navegador."
+  },
+  "app": {
+    "title": "Herramienta de Impresión de Fotos",
+    "subtitle": "Flujo profesional de impresión para trabajos diarios",
+    "print": "Imprimir",
+    "language": "Idioma",
+    "languageOptions": {
+      "en-US": "English (US)",
+      "es-419": "Español (Latinoamérica)"
+    }
+  },
+  "photos": {
+    "title": "Fotos",
+    "description": "Selecciona múltiples fotos para este trabajo de impresión.",
+    "import": "Importar fotos",
+    "noPhotos": "Aún no hay fotos seleccionadas.",
+    "include": "Incluir",
+    "remove": "Eliminar"
+  },
+  "preview": {
+    "title": "Vista previa",
+    "emptyDescription": "Agrega y selecciona fotos para generar páginas de vista previa.",
+    "pageOf": "Página {{current}} de {{total}}",
+    "slotsPerPage": "Espacios por página: {{count}}",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "empty": "Vacío",
+    "tip": "Tip: en el diálogo de impresión del navegador, desactiva opciones de escala como “Ajustar a la página” para mantener dimensiones físicas exactas.",
+    "overflow": "Desbordamiento de diseño: el tamaño y espaciado actuales exceden el área imprimible.",
+    "lowQualityRisk": "Riesgo de baja calidad: {{name}} ~{{ppi}} PPI con el tamaño de impresión actual."
+  },
+  "settings": {
+    "title": "Configuración de impresión",
+    "description": "Diseño, tamaño exacto, unidades y controles de ajuste de foto.",
+    "paperSize": "Tamaño de papel",
+    "layout": "Diseño",
+    "orientation": "Orientación",
+    "units": "Unidades",
+    "portrait": "Vertical",
+    "landscape": "Horizontal",
+    "copiesPerPage": "Copias por página",
+    "columnsRows": "Columnas / Filas",
+    "exactPrintSize": "Tamaño exacto de impresión ({{unit}})",
+    "widthHeight": "Ancho / Alto",
+    "pageSpacing": "Espaciado de página ({{unit}})",
+    "marginGap": "Margen / Separación",
+    "selectedPhotoControls": "Controles de la foto seleccionada",
+    "pickPhoto": "Selecciona una foto del panel izquierdo para editar ajuste y rotación.",
+    "rotateMinus": "Rotar -90°",
+    "rotatePlus": "Rotar +90°",
+    "fill": "Rellenar (recortar)",
+    "fit": "Ajustar (contener)",
+    "manualImagePosition": "Posición manual de imagen",
+    "moveUp": "Mover arriba (%)",
+    "moveRight": "Mover derecha (%)",
+    "moveDown": "Mover abajo (%)",
+    "moveLeft": "Mover izquierda (%)"
+  },
+  "profiles": {
+    "title": "Perfiles de configuración de impresión",
+    "manage": "Gestionar",
+    "hide": "Ocultar",
+    "saveCurrent": "Guardar configuración actual",
+    "profileNamePlaceholder": "Nombre del perfil",
+    "save": "Guardar",
+    "savedProfiles": "Perfiles guardados",
+    "selectProfile": "Seleccionar perfil",
+    "load": "Cargar",
+    "delete": "Eliminar",
+    "errorInvalidName": "Ingresa un nombre de perfil válido.",
+    "noticeSaved": "Perfil guardado.",
+    "noticeUpdated": "Perfil actualizado.",
+    "noticeLoaded": "Perfil cargado.",
+    "noticeDeleted": "Perfil eliminado."
+  },
+  "presets": {
+    "paper": {
+      "a4": "A4",
+      "a5": "A5",
+      "letter": "Carta",
+      "legal": "Oficio",
+      "4x6": "4 x 6 pulg",
+      "5x7": "5 x 7 pulg",
+      "8x10": "8 x 10 pulg"
+    },
+    "layout": {
+      "single": "Página completa (1)",
+      "two": "2 Fotos",
+      "four": "4 Fotos",
+      "contact": "Hoja de contacto",
+      "passport": "Pasaporte / ID"
+    }
+  }
+}
