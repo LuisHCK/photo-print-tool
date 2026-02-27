@@ -1,52 +1,51 @@
 # Photo Print Tool
 
-Web app for daily customer photo printing with precise layout control.
+Photo Print Tool is a React app for creating precise, repeatable photo print layouts.
+It’s built for real print workflows where dimensions, spacing, and consistency matter.
 
-## Stack
+## Highlights
 
-- Vite
-- React + TypeScript
-- Tailwind CSS
-- shadcn/ui
+- Exact print sizing with unit support (`mm`, `cm`, `in`)
+- Built-in paper and layout presets (single, multi-photo, contact sheet, passport/ID)
+- Manual photo controls (fit/fill, rotate, optional manual position nudges)
+- User-controlled copies per page (custom rows/columns)
+- Print settings profiles saved locally
+- Multi-language UI (English + Spanish LATAM)
+- Print-friendly output with browser `window.print()`
+
+## Tech Stack
+
+- React + TypeScript + Vite
+- Tailwind CSS + shadcn/ui
+- i18next + react-i18next
 - Bun
 
-## Features (MVP)
+## Run the project
 
-- Select multiple photos
-- Choose layout presets (1, 2, 4, contact sheet, passport/ID)
-- Set precise print size per slot
-- Switch units (`mm`, `cm`, `in`)
-- Use common paper presets (A4, A5, Letter, Legal, 4x6, 5x7, 8x10)
-- Browser print output with print-optimized layout
-
-## Run locally
+### 1) Install dependencies
 
 ```bash
 bun install
+```
+
+### 2) Start development server
+
+```bash
 bun run dev
 ```
 
-## Quality checks
+### 3) Build for production
 
 ```bash
-bun run lint
 bun run build
 ```
 
-## Notes on print accuracy
+### 4) Run lint
 
-- The app computes sizes using real units and renders print pages in `mm`.
-- Final physical output can still vary based on printer and driver settings.
-- For best accuracy, disable print scaling options like “Fit to page” in the browser print dialog.
+```bash
+bun run lint
+```
 
-## Calibration test page (quick check)
+## Print note
 
-Use this routine when setting up a new printer or browser profile:
-
-1. Open the app and select `A4` or `Letter` paper.
-2. Choose the `1 photo per page` layout.
-3. Set exact size to `100 mm x 100 mm`.
-4. Print with scaling disabled (`Actual size` / `100%`).
-5. Measure the printed square with a ruler.
-
-If measurement is off, review print dialog settings and disable any auto-fit options before printing customer jobs.
+For accurate physical output, disable print scaling in the browser dialog (use options like `Actual size` / `100%`).
