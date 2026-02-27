@@ -57,9 +57,12 @@ function App() {
                     layoutId={state.layoutId}
                     orientation={state.orientation}
                     unit={state.unit}
+                    layoutColumns={state.selectedLayoutColumns}
+                    layoutRows={state.selectedLayoutRows}
                     activePhoto={state.activePhoto}
                     paperPresets={state.paperPresets}
                     layoutPresets={state.layoutPresets}
+                    settingsProfiles={state.settingsProfiles}
                     widthInput={state.widthInput}
                     heightInput={state.heightInput}
                     marginInput={state.marginInput}
@@ -68,8 +71,17 @@ function App() {
                     onLayoutChange={actions.updateLayout}
                     onOrientationChange={actions.setOrientation}
                     onUnitChange={actions.updateUnit}
+                    onLayoutColumnsChange={actions.updateLayoutColumns}
+                    onLayoutRowsChange={actions.updateLayoutRows}
                     onActivePhotoRotate={actions.updateActivePhotoRotation}
                     onActivePhotoFitModeChange={actions.updateActivePhotoFitMode}
+                    onActivePhotoManualPositionEnabledChange={
+                        actions.updateActivePhotoManualPositionEnabled
+                    }
+                    onActivePhotoNudgeChange={actions.updateActivePhotoNudge}
+                    onSaveSettingsProfile={actions.saveSettingsProfile}
+                    onLoadSettingsProfile={actions.loadSettingsProfile}
+                    onDeleteSettingsProfile={actions.deleteSettingsProfile}
                 />
             </main>
 

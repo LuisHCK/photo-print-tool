@@ -69,3 +69,14 @@ export function calcEffectivePpi(photo: PhotoItem, widthMm: number, heightMm: nu
     const ppiH = photo.heightPx / heightIn
     return Math.min(ppiW, ppiH)
 }
+
+export function getPhotoObjectPosition(photo: PhotoItem) {
+    if (!photo.manualPositionEnabled) {
+        return '50% 50%'
+    }
+
+    const xPct = 50 + photo.nudgeRightPct - photo.nudgeLeftPct
+    const yPct = 50 + photo.nudgeDownPct - photo.nudgeUpPct
+
+    return `${xPct}% ${yPct}%`
+}

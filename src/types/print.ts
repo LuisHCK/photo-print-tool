@@ -35,6 +35,11 @@ export interface PhotoItem {
     heightPx: number
     rotationDeg: number
     fitMode: FitMode
+    manualPositionEnabled: boolean
+    nudgeUpPct: number
+    nudgeRightPct: number
+    nudgeDownPct: number
+    nudgeLeftPct: number
     selected: boolean
 }
 
@@ -46,4 +51,25 @@ export interface SlotAssignment {
 export interface PageAssignment {
     pageIndex: number
     slots: SlotAssignment[]
+}
+
+export interface PrintSettingsSnapshot {
+    paperId: PaperPresetId
+    layoutId: LayoutPresetId
+    orientation: Orientation
+    unit: Unit
+    layoutColumns: number
+    layoutRows: number
+    cellWidthMm: number
+    cellHeightMm: number
+    marginMm: number
+    gapMm: number
+}
+
+export interface PrintSettingsProfile {
+    id: string
+    name: string
+    createdAt: string
+    updatedAt: string
+    settings: PrintSettingsSnapshot
 }

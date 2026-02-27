@@ -10,6 +10,8 @@ import {
     SelectValue
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { PrintSettingsProfilesSection } from '@/components/panels/print-settings-profiles-section'
 import type { NumericInputController } from '@/hooks/use-print-job'
 import type {
     FitMode,
@@ -18,6 +20,7 @@ import type {
     Orientation,
     PaperPreset,
     PaperPresetId,
+    PrintSettingsProfile,
     PhotoItem,
     Unit
 } from '@/types/print'
@@ -27,9 +30,12 @@ interface PrintSettingsPanelProps {
     layoutId: LayoutPresetId
     orientation: Orientation
     unit: Unit
+    layoutColumns: number
+    layoutRows: number
     activePhoto: PhotoItem | null
     paperPresets: PaperPreset[]
     layoutPresets: LayoutPreset[]
+    settingsProfiles: PrintSettingsProfile[]
     widthInput: NumericInputController
     heightInput: NumericInputController
     marginInput: NumericInputController
@@ -38,8 +44,15 @@ interface PrintSettingsPanelProps {
     onLayoutChange: (layoutId: LayoutPresetId) => void
     onOrientationChange: (orientation: Orientation) => void
     onUnitChange: (unit: Unit) => void
+    onLayoutColumnsChange: (columns: number) => void
+    onLayoutRowsChange: (rows: number) => void
     onActivePhotoRotate: (delta: number) => void
     onActivePhotoFitModeChange: (fitMode: FitMode) => void
+    onActivePhotoManualPositionEnabledChange: (enabled: boolean) => void
+    onActivePhotoNudgeChange: (direction: 'up' | 'right' | 'down' | 'left', value: number) => void
+    onSaveSettingsProfile: (name: string) => { id: string; mode: 'created' | 'updated' } | null
+    onLoadSettingsProfile: (profileId: string) => void
+    onDeleteSettingsProfile: (profileId: string) => void
 }
 
 function NumericField({ controller }: { controller: NumericInputController }) {
@@ -63,9 +76,12 @@ export function PrintSettingsPanel({
     layoutId,
     orientation,
     unit,
+    layoutColumns,
+    layoutRows,
     activePhoto,
     paperPresets,
     layoutPresets,
+    settingsProfiles,
     widthInput,
     heightInput,
     marginInput,
@@ -74,8 +90,15 @@ export function PrintSettingsPanel({
     onLayoutChange,
     onOrientationChange,
     onUnitChange,
+    onLayoutColumnsChange,
+    onLayoutRowsChange,
     onActivePhotoRotate,
-    onActivePhotoFitModeChange
+    onActivePhotoFitModeChange,
+    onActivePhotoManualPositionEnabledChange,
+    onActivePhotoNudgeChange,
+    onSaveSettingsProfile,
+    onLoadSettingsProfile,
+    onDeleteSettingsProfile
 }: PrintSettingsPanelProps) {
     return (
         <Card className="py-4">
@@ -156,6 +179,27 @@ export function PrintSettingsPanel({
                 </div>
 
                 <div className="space-y-2">
+                    <Label>Copies per page</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Input
+                            type="number"
+                            min={1}
+                            step="1"
+                            value={layoutColumns}
+                            onChange={(event) => onLayoutColumnsChange(Number(event.target.value))}
+                        />
+                        <Input
+                            type="number"
+                            min={1}
+                            step="1"
+                            value={layoutRows}
+                            onChange={(event) => onLayoutRowsChange(Number(event.target.value))}
+                        />
+                    </div>
+                    <div className="text-muted-foreground text-xs">Columns / Rows</div>
+                </div>
+
+                <div className="space-y-2">
                     <Label>Exact print size ({unit})</Label>
                     <div className="grid grid-cols-2 gap-3">
                         <NumericField controller={widthInput} />
@@ -212,6 +256,85 @@ export function PrintSettingsPanel({
                                     <SelectItem value="fit">Fit (contain)</SelectItem>
                                 </SelectContent>
                             </Select>
+
+                            <div className="space-y-2 rounded-md border p-3">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-sm">Manual image position</Label>
+                                    <Switch
+                                        checked={activePhoto.manualPositionEnabled}
+                                        onCheckedChange={onActivePhotoManualPositionEnabledChange}
+                                    />
+                                </div>
+
+                                {activePhoto.manualPositionEnabled ? (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <Label className="text-xs">Move Up (%)</Label>
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                step="0.5"
+                                                value={activePhoto.nudgeUpPct}
+                                                onChange={(event) =>
+                                                    onActivePhotoNudgeChange(
+                                                        'up',
+                                                        Number(event.target.value)
+                                                    )
+                                                }
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-xs">Move Right (%)</Label>
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                step="0.5"
+                                                value={activePhoto.nudgeRightPct}
+                                                onChange={(event) =>
+                                                    onActivePhotoNudgeChange(
+                                                        'right',
+                                                        Number(event.target.value)
+                                                    )
+                                                }
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-xs">Move Down (%)</Label>
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                step="0.5"
+                                                value={activePhoto.nudgeDownPct}
+                                                onChange={(event) =>
+                                                    onActivePhotoNudgeChange(
+                                                        'down',
+                                                        Number(event.target.value)
+                                                    )
+                                                }
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-xs">Move Left (%)</Label>
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                step="0.5"
+                                                value={activePhoto.nudgeLeftPct}
+                                                onChange={(event) =>
+                                                    onActivePhotoNudgeChange(
+                                                        'left',
+                                                        Number(event.target.value)
+                                                    )
+                                                }
+                                                placeholder="0"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : null}
+                            </div>
                         </>
                     ) : (
                         <p className="text-muted-foreground text-sm">
@@ -219,6 +342,15 @@ export function PrintSettingsPanel({
                         </p>
                     )}
                 </div>
+
+                <Separator />
+
+                <PrintSettingsProfilesSection
+                    profiles={settingsProfiles}
+                    onSaveProfile={onSaveSettingsProfile}
+                    onLoadProfile={onLoadSettingsProfile}
+                    onDeleteProfile={onDeleteSettingsProfile}
+                />
             </CardContent>
         </Card>
     )

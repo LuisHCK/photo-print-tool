@@ -1,3 +1,4 @@
+import { getPhotoObjectPosition } from '@/lib/print-layout'
 import type { PageAssignment } from '@/types/print'
 
 interface PrintPagesProps {
@@ -35,6 +36,10 @@ export function PrintPages({
                     }}
                 >
                     {page.slots.map((slot) => {
+                        if (!slot.photo) {
+                            return null
+                        }
+
                         const columnIndex = slot.slotIndex % selectedLayoutColumns
                         const rowIndex = Math.floor(slot.slotIndex / selectedLayoutColumns)
                         const offsetX =
@@ -57,20 +62,19 @@ export function PrintPages({
                                     border: '0.2mm solid #d4d4d4'
                                 }}
                             >
-                                {slot.photo ? (
-                                    <img
-                                        src={slot.photo.url}
-                                        alt={slot.photo.name}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit:
-                                                slot.photo.fitMode === 'fill' ? 'cover' : 'contain',
-                                            transform: `rotate(${slot.photo.rotationDeg}deg)`,
-                                            transformOrigin: 'center center'
-                                        }}
-                                    />
-                                ) : null}
+                                <img
+                                    src={slot.photo.url}
+                                    alt={slot.photo.name}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit:
+                                            slot.photo.fitMode === 'fill' ? 'cover' : 'contain',
+                                        objectPosition: getPhotoObjectPosition(slot.photo),
+                                        transform: `rotate(${slot.photo.rotationDeg}deg)`,
+                                        transformOrigin: 'center center'
+                                    }}
+                                />
                             </div>
                         )
                     })}

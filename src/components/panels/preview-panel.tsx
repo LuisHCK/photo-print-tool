@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import type { Dispatch, SetStateAction } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { getPhotoObjectPosition } from '@/lib/print-layout'
 import type { PageAssignment, PhotoItem } from '@/types/print'
 
 interface PreviewPanelProps {
@@ -118,6 +119,7 @@ export function PreviewPanel({
                                                     slot.photo.fitMode === 'fill'
                                                         ? 'cover'
                                                         : 'contain',
+                                                objectPosition: getPhotoObjectPosition(slot.photo),
                                                 transform: `rotate(${slot.photo.rotationDeg}deg)`,
                                                 transformOrigin: 'center center'
                                             }}
