@@ -46,6 +46,38 @@ bun run build
 bun run lint
 ```
 
+## Docker
+
+### Development image
+
+Build:
+
+```bash
+docker build --target dev -t photo-print:dev .
+```
+
+Run:
+
+```bash
+docker run --rm -p 5173:5173 photo-print:dev
+```
+
+### Production image (Nginx)
+
+Build:
+
+```bash
+docker build --target production -t photo-print:prod .
+```
+
+Run:
+
+```bash
+docker run --rm -p 8080:8080 photo-print:prod
+```
+
+Then open http://localhost:8080.
+
 ## Print note
 
 For accurate physical output, disable print scaling in the browser dialog (use options like `Actual size` / `100%`).
