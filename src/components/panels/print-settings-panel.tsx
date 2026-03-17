@@ -26,17 +26,10 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { PrintSettingsProfilesSection } from '@/components/panels/print-settings-profiles-section'
-import type { NumericInputController } from '@/hooks/use-print-job'
+import { usePrintJobActions, usePrintJobState } from '@/hooks/use-print-job-context'
 import type {
-    FitMode,
     GridAlignment,
-    LayoutPreset,
-    LayoutPresetId,
     Orientation,
-    PaperPreset,
-    PaperPresetId,
-    PrintSettingsProfile,
-    PhotoItem,
     Unit
 } from '@/types/print'
 import { useState } from 'react'
@@ -54,76 +47,10 @@ const GRID_ALIGNMENT_OPTIONS: Array<{ value: GridAlignment; icon: LucideIcon }> 
     { value: 'bottom-right', icon: MoveDownRight }
 ]
 
-interface PrintSettingsPanelProps {
-    paperId: PaperPresetId
-    layoutId: LayoutPresetId
-    orientation: Orientation
-    unit: Unit
-    layoutColumns: number
-    layoutRows: number
-    gridAlignment: GridAlignment
-    activePhoto: PhotoItem | null
-    paperPresets: PaperPreset[]
-    layoutPresets: LayoutPreset[]
-    settingsProfiles: PrintSettingsProfile[]
-    widthInput: NumericInputController
-    heightInput: NumericInputController
-    marginInput: NumericInputController
-    horizontalGapInput: NumericInputController
-    verticalGapInput: NumericInputController
-    showCropGuides: boolean
-    onPaperIdChange: (paperId: PaperPresetId) => void
-    onLayoutChange: (layoutId: LayoutPresetId) => void
-    onOrientationChange: (orientation: Orientation) => void
-    onUnitChange: (unit: Unit) => void
-    onLayoutColumnsChange: (columns: number) => void
-    onLayoutRowsChange: (rows: number) => void
-    onGridAlignmentChange: (alignment: GridAlignment) => void
-    onShowCropGuidesChange: (show: boolean) => void
-    onActivePhotoRotate: (delta: number) => void
-    onActivePhotoFitModeChange: (fitMode: FitMode) => void
-    onActivePhotoManualPositionEnabledChange: (enabled: boolean) => void
-    onActivePhotoNudgeChange: (direction: 'up' | 'right' | 'down' | 'left', value: number) => void
-    onSaveSettingsProfile: (name: string) => { id: string; mode: 'created' | 'updated' } | null
-    onLoadSettingsProfile: (profileId: string) => void
-    onDeleteSettingsProfile: (profileId: string) => void
-}
-
-export function PrintSettingsPanel({
-    paperId,
-    layoutId,
-    orientation,
-    unit,
-    layoutColumns,
-    layoutRows,
-    gridAlignment,
-    activePhoto,
-    paperPresets,
-    layoutPresets,
-    settingsProfiles,
-    widthInput,
-    heightInput,
-    marginInput,
-    horizontalGapInput,
-    verticalGapInput,
-    showCropGuides,
-    onPaperIdChange,
-    onLayoutChange,
-    onOrientationChange,
-    onUnitChange,
-    onLayoutColumnsChange,
-    onLayoutRowsChange,
-    onGridAlignmentChange,
-    onShowCropGuidesChange,
-    onActivePhotoRotate,
-    onActivePhotoFitModeChange,
-    onActivePhotoManualPositionEnabledChange,
-    onActivePhotoNudgeChange,
-    onSaveSettingsProfile,
-    onLoadSettingsProfile,
-    onDeleteSettingsProfile
-}: PrintSettingsPanelProps) {
+export function PrintSettingsPanel() {
     const { t } = useTranslation()
+    const state = usePrintJobState()
+    const actions = usePrintJobActions()
     const [showAlignmentPicker, setShowAlignmentPicker] = useState(false)
 
     return (
@@ -135,12 +62,12 @@ export function PrintSettingsPanel({
             <CardContent className="space-y-4">
                 <div className="space-y-2">
                     <Label>{t('settings.paperSize')}</Label>
-                    <Select value={paperId} onValueChange={onPaperIdChange}>
+                    <Select value={state.paperId} onValueChange={actions.setPaperId}>
                         <SelectTrigger className="w-full">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            {paperPresets.map((paperPreset) => (
+                            {state.paperPresets.map((paperPreset) => (
                                 <SelectItem key={paperPreset.id} value={paperPreset.id}>
                                     {t(`presets.paper.${paperPreset.id}`, {
                                         defaultValue: paperPreset.name
@@ -153,12 +80,12 @@ export function PrintSettingsPanel({
 
                 <div className="space-y-2">
                     <Label>{t('settings.layout')}</Label>
-                    <Select value={layoutId} onValueChange={onLayoutChange}>
+                    <Select value={state.layoutId} onValueChange={actions.updateLayout}>
                         <SelectTrigger className="w-full">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            {layoutPresets.map((layoutPreset) => (
+                            {state.layoutPresets.map((layoutPreset) => (
                                 <SelectItem key={layoutPreset.id} value={layoutPreset.id}>
                                     {t(`presets.layout.${layoutPreset.id}`, {
                                         defaultValue: layoutPreset.name
@@ -173,9 +100,9 @@ export function PrintSettingsPanel({
                     <div className="space-y-2">
                         <Label>{t('settings.orientation')}</Label>
                         <Select
-                            value={orientation}
+                            value={state.orientation}
                             onValueChange={(nextValue) =>
-                                onOrientationChange(nextValue as Orientation)
+                                actions.setOrientation(nextValue as Orientation)
                             }
                         >
                             <SelectTrigger className="w-full">
@@ -191,8 +118,8 @@ export function PrintSettingsPanel({
                     <div className="space-y-2">
                         <Label>{t('settings.units')}</Label>
                         <Select
-                            value={unit}
-                            onValueChange={(nextValue) => onUnitChange(nextValue as Unit)}
+                            value={state.unit}
+                            onValueChange={(nextValue) => actions.updateUnit(nextValue as Unit)}
                         >
                             <SelectTrigger className="w-full">
                                 <SelectValue />
@@ -213,33 +140,37 @@ export function PrintSettingsPanel({
                             type="number"
                             min={1}
                             step="1"
-                            value={layoutColumns}
-                            onChange={(event) => onLayoutColumnsChange(Number(event.target.value))}
+                            value={state.selectedLayoutColumns}
+                            onChange={(event) =>
+                                actions.updateLayoutColumns(Number(event.target.value))
+                            }
                         />
                         <Input
                             type="number"
                             min={1}
                             step="1"
-                            value={layoutRows}
-                            onChange={(event) => onLayoutRowsChange(Number(event.target.value))}
+                            value={state.selectedLayoutRows}
+                            onChange={(event) =>
+                                actions.updateLayoutRows(Number(event.target.value))
+                            }
                         />
                     </div>
                     <div className="text-muted-foreground text-xs">{t('settings.columnsRows')}</div>
                 </div>
 
                 <div className="space-y-2">
-                    <Label>{t('settings.exactPrintSize', { unit })}</Label>
+                    <Label>{t('settings.exactPrintSize', { unit: state.unit })}</Label>
                     <div className="grid grid-cols-2 gap-3">
                         <Input
                             type="number"
                             step="any"
                             min={0}
-                            value={widthInput.value}
-                            onBlur={widthInput.onBlur}
-                            onChange={(event) => widthInput.onChange(event.target.value)}
+                            value={state.widthInput.value}
+                            onBlur={state.widthInput.onBlur}
+                            onChange={(event) => state.widthInput.onChange(event.target.value)}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') {
-                                    widthInput.onEnter()
+                                    state.widthInput.onEnter()
                                     event.currentTarget.blur()
                                 }
                             }}
@@ -248,12 +179,12 @@ export function PrintSettingsPanel({
                             type="number"
                             step="any"
                             min={0}
-                            value={heightInput.value}
-                            onBlur={heightInput.onBlur}
-                            onChange={(event) => heightInput.onChange(event.target.value)}
+                            value={state.heightInput.value}
+                            onBlur={state.heightInput.onBlur}
+                            onChange={(event) => state.heightInput.onChange(event.target.value)}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') {
-                                    heightInput.onEnter()
+                                    state.heightInput.onEnter()
                                     event.currentTarget.blur()
                                 }
                             }}
@@ -263,18 +194,18 @@ export function PrintSettingsPanel({
                 </div>
 
                 <div className="space-y-2">
-                    <Label>{t('settings.pageSpacing', { unit })}</Label>
+                    <Label>{t('settings.pageSpacing', { unit: state.unit })}</Label>
                     <div className="grid grid-cols-3 gap-3">
                         <Input
                             type="number"
                             step="any"
                             min={0}
-                            value={marginInput.value}
-                            onBlur={marginInput.onBlur}
-                            onChange={(event) => marginInput.onChange(event.target.value)}
+                            value={state.marginInput.value}
+                            onBlur={state.marginInput.onBlur}
+                            onChange={(event) => state.marginInput.onChange(event.target.value)}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') {
-                                    marginInput.onEnter()
+                                    state.marginInput.onEnter()
                                     event.currentTarget.blur()
                                 }
                             }}
@@ -283,12 +214,14 @@ export function PrintSettingsPanel({
                             type="number"
                             step="any"
                             min={0}
-                            value={horizontalGapInput.value}
-                            onBlur={horizontalGapInput.onBlur}
-                            onChange={(event) => horizontalGapInput.onChange(event.target.value)}
+                            value={state.horizontalGapInput.value}
+                            onBlur={state.horizontalGapInput.onBlur}
+                            onChange={(event) =>
+                                state.horizontalGapInput.onChange(event.target.value)
+                            }
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') {
-                                    horizontalGapInput.onEnter()
+                                    state.horizontalGapInput.onEnter()
                                     event.currentTarget.blur()
                                 }
                             }}
@@ -297,12 +230,12 @@ export function PrintSettingsPanel({
                             type="number"
                             step="any"
                             min={0}
-                            value={verticalGapInput.value}
-                            onBlur={verticalGapInput.onBlur}
-                            onChange={(event) => verticalGapInput.onChange(event.target.value)}
+                            value={state.verticalGapInput.value}
+                            onBlur={state.verticalGapInput.onBlur}
+                            onChange={(event) => state.verticalGapInput.onChange(event.target.value)}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') {
-                                    verticalGapInput.onEnter()
+                                    state.verticalGapInput.onEnter()
                                     event.currentTarget.blur()
                                 }
                             }}
@@ -314,7 +247,10 @@ export function PrintSettingsPanel({
                 <div className="space-y-2">
                     <div className="flex items-center justify-between rounded-md border p-3">
                         <Label className="text-sm">{t('settings.cropGuides')}</Label>
-                        <Switch checked={showCropGuides} onCheckedChange={onShowCropGuidesChange} />
+                        <Switch
+                            checked={state.showCropGuides}
+                            onCheckedChange={actions.setShowCropGuides}
+                        />
                     </div>
                     <div className="text-muted-foreground text-xs">{t('settings.cropGuidesHelp')}</div>
                 </div>
@@ -342,7 +278,7 @@ export function PrintSettingsPanel({
                             <div className="grid grid-cols-3 gap-2">
                                 {GRID_ALIGNMENT_OPTIONS.map((option) => {
                                     const Icon = option.icon
-                                    const isActive = option.value === gridAlignment
+                                    const isActive = option.value === state.gridAlignment
 
                                     return (
                                         <Button
@@ -350,7 +286,7 @@ export function PrintSettingsPanel({
                                             type="button"
                                             variant={isActive ? 'default' : 'outline'}
                                             size="icon"
-                                            onClick={() => onGridAlignmentChange(option.value)}
+                                            onClick={() => actions.setGridAlignment(option.value)}
                                             aria-label={t(`settings.alignment.${option.value}`)}
                                             title={t(`settings.alignment.${option.value}`)}
                                         >
@@ -370,31 +306,31 @@ export function PrintSettingsPanel({
 
                 <div className="space-y-2">
                     <Label>{t('settings.selectedPhotoControls')}</Label>
-                    {activePhoto ? (
+                    {state.activePhoto ? (
                         <>
                             <div className="text-muted-foreground truncate text-xs">
-                                {activePhoto.name}
+                                {state.activePhoto.name}
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => onActivePhotoRotate(-90)}
+                                    onClick={() => actions.updateActivePhotoRotation(-90)}
                                 >
                                     {t('settings.rotateMinus')}
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => onActivePhotoRotate(90)}
+                                    onClick={() => actions.updateActivePhotoRotation(90)}
                                 >
                                     {t('settings.rotatePlus')}
                                 </Button>
                             </div>
                             <Select
-                                value={activePhoto.fitMode}
+                                value={state.activePhoto.fitMode}
                                 onValueChange={(nextValue) =>
-                                    onActivePhotoFitModeChange(nextValue as FitMode)
+                                    actions.updateActivePhotoFitMode(nextValue as 'fill' | 'fit')
                                 }
                             >
                                 <SelectTrigger className="w-full">
@@ -412,12 +348,14 @@ export function PrintSettingsPanel({
                                         {t('settings.manualImagePosition')}
                                     </Label>
                                     <Switch
-                                        checked={activePhoto.manualPositionEnabled}
-                                        onCheckedChange={onActivePhotoManualPositionEnabledChange}
+                                        checked={state.activePhoto.manualPositionEnabled}
+                                        onCheckedChange={
+                                            actions.updateActivePhotoManualPositionEnabled
+                                        }
                                     />
                                 </div>
 
-                                {activePhoto.manualPositionEnabled ? (
+                                {state.activePhoto.manualPositionEnabled ? (
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
                                             <Label className="text-xs">{t('settings.moveUp')}</Label>
@@ -425,9 +363,9 @@ export function PrintSettingsPanel({
                                                 type="number"
                                                 min={0}
                                                 step="0.5"
-                                                value={activePhoto.nudgeUpPct}
+                                                value={state.activePhoto.nudgeUpPct}
                                                 onChange={(event) =>
-                                                    onActivePhotoNudgeChange(
+                                                    actions.updateActivePhotoNudge(
                                                         'up',
                                                         Number(event.target.value)
                                                     )
@@ -441,9 +379,9 @@ export function PrintSettingsPanel({
                                                 type="number"
                                                 min={0}
                                                 step="0.5"
-                                                value={activePhoto.nudgeRightPct}
+                                                value={state.activePhoto.nudgeRightPct}
                                                 onChange={(event) =>
-                                                    onActivePhotoNudgeChange(
+                                                    actions.updateActivePhotoNudge(
                                                         'right',
                                                         Number(event.target.value)
                                                     )
@@ -457,9 +395,9 @@ export function PrintSettingsPanel({
                                                 type="number"
                                                 min={0}
                                                 step="0.5"
-                                                value={activePhoto.nudgeDownPct}
+                                                value={state.activePhoto.nudgeDownPct}
                                                 onChange={(event) =>
-                                                    onActivePhotoNudgeChange(
+                                                    actions.updateActivePhotoNudge(
                                                         'down',
                                                         Number(event.target.value)
                                                     )
@@ -473,9 +411,9 @@ export function PrintSettingsPanel({
                                                 type="number"
                                                 min={0}
                                                 step="0.5"
-                                                value={activePhoto.nudgeLeftPct}
+                                                value={state.activePhoto.nudgeLeftPct}
                                                 onChange={(event) =>
-                                                    onActivePhotoNudgeChange(
+                                                    actions.updateActivePhotoNudge(
                                                         'left',
                                                         Number(event.target.value)
                                                     )
@@ -497,10 +435,10 @@ export function PrintSettingsPanel({
                 <Separator />
 
                 <PrintSettingsProfilesSection
-                    profiles={settingsProfiles}
-                    onSaveProfile={onSaveSettingsProfile}
-                    onLoadProfile={onLoadSettingsProfile}
-                    onDeleteProfile={onDeleteSettingsProfile}
+                    profiles={state.settingsProfiles}
+                    onSaveProfile={actions.saveSettingsProfile}
+                    onLoadProfile={actions.loadSettingsProfile}
+                    onDeleteProfile={actions.deleteSettingsProfile}
                 />
             </CardContent>
         </Card>

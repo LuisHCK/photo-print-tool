@@ -1,31 +1,16 @@
 import { Button } from '@/components/ui/button'
-import type { ChangeEvent } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import type { PhotoItem } from '@/types/print'
+import { usePrintJobActions, usePrintJobState } from '@/hooks/use-print-job-context'
 import { useTranslation } from 'react-i18next'
 
-interface PhotosPanelProps {
-    photos: PhotoItem[]
-    activePhotoId: string | null
-    onFileUpload: (event: ChangeEvent<HTMLInputElement>) => void
-    onSetActivePhotoId: (photoId: string) => void
-    onTogglePhotoSelection: (photoId: string, selected: boolean) => void
-    onRemovePhoto: (photoId: string) => void
-}
-
-export function PhotosPanel({
-    photos,
-    activePhotoId,
-    onFileUpload,
-    onSetActivePhotoId,
-    onTogglePhotoSelection,
-    onRemovePhoto
-}: PhotosPanelProps) {
+export function PhotosPanel() {
     const { t } = useTranslation()
+    const state = usePrintJobState()
+    const actions = usePrintJobActions()
 
     return (
         <Card className="py-4">
@@ -43,7 +28,7 @@ export function PhotosPanel({
                         type="file"
                         multiple
                         accept="image/*"
-                        onChange={onFileUpload}
+                        onChange={actions.handleFileUpload}
                         className="cursor-pointer"
                     />
                 </div>
@@ -52,16 +37,16 @@ export function PhotosPanel({
 
                 <ScrollArea className="h-[62vh] pr-2">
                     <div className="space-y-2">
-                        {photos.length === 0 ? (
+                        {state.photos.length === 0 ? (
                             <div className="text-muted-foreground rounded-md border border-dashed p-4 text-sm">
                                 {t('photos.noPhotos')}
                             </div>
                         ) : (
-                            photos.map((photo) => (
+                            state.photos.map((photo) => (
                                 <div
                                     key={photo.id}
                                     className={`flex items-center gap-2 overflow-hidden rounded-md border p-2 transition-colors ${
-                                        photo.id === activePhotoId
+                                        photo.id === state.activePhotoId
                                             ? 'border-primary/50 bg-muted/40'
                                             : 'border-border'
                                     }`}
@@ -69,7 +54,7 @@ export function PhotosPanel({
                                     <button
                                         type="button"
                                         className="h-14 w-14 shrink-0 overflow-hidden rounded border cursor-pointer"
-                                        onClick={() => onSetActivePhotoId(photo.id)}
+                                        onClick={() => actions.setActivePhotoId(photo.id)}
                                     >
                                         <img
                                             src={photo.url}
@@ -89,7 +74,7 @@ export function PhotosPanel({
                                                 type="checkbox"
                                                 checked={photo.selected}
                                                 onChange={(event) =>
-                                                    onTogglePhotoSelection(
+                                                    actions.togglePhotoSelection(
                                                         photo.id,
                                                         event.target.checked
                                                     )
@@ -101,7 +86,7 @@ export function PhotosPanel({
                                             type="button"
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => onRemovePhoto(photo.id)}
+                                            onClick={() => actions.removePhoto(photo.id)}
                                         >
                                             {t('photos.remove')}
                                         </Button>

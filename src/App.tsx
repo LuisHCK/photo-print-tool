@@ -3,11 +3,9 @@ import { PhotosPanel } from '@/components/panels/photos-panel'
 import { PreviewPanel } from '@/components/panels/preview-panel'
 import { PrintSettingsPanel } from '@/components/panels/print-settings-panel'
 import { PrintPages } from '@/components/print/print-pages'
-import { usePrintJob } from '@/hooks/use-print-job'
+import { PrintJobProvider } from '@/context/print-job-provider'
 
 function App() {
-    const { state, actions } = usePrintJob()
-
     function printNow() {
         window.print()
     }
@@ -16,92 +14,17 @@ function App() {
         <div className="min-h-screen bg-muted/20">
             <AppHeader onPrint={printNow} />
 
-            <main className="no-print grid grid-cols-1 gap-4 p-4 xl:grid-cols-[320px_1fr_360px]">
-                <PhotosPanel
-                    photos={state.photos}
-                    activePhotoId={state.activePhotoId}
-                    onFileUpload={actions.handleFileUpload}
-                    onSetActivePhotoId={actions.setActivePhotoId}
-                    onTogglePhotoSelection={actions.togglePhotoSelection}
-                    onRemovePhoto={actions.removePhoto}
-                />
+            <PrintJobProvider>
+                <main className="no-print grid grid-cols-1 gap-4 p-4 xl:grid-cols-[320px_1fr_360px]">
+                    <PhotosPanel />
 
-                <PreviewPanel
-                    pages={state.pages}
-                    pageIndex={state.pageIndex}
-                    slotsPerPage={state.slotsPerPage}
-                    currentPage={state.currentPage}
-                    pageSize={state.pageSize}
-                    previewScale={state.previewScale}
-                    selectedLayoutColumns={state.selectedLayoutColumns}
-                    cellWidthMm={state.cellWidthMm}
-                    cellHeightMm={state.cellHeightMm}
-                    marginMm={state.marginMm}
-                    horizontalGapMm={state.horizontalGapMm}
-                    verticalGapMm={state.verticalGapMm}
-                    gridWidthMm={state.gridWidthMm}
-                    gridHeightMm={state.gridHeightMm}
-                    gridAlignment={state.gridAlignment}
-                    showCropGuides={state.showCropGuides}
-                    hasOverflow={state.hasOverflow}
-                    ppiWarnings={state.ppiWarnings}
-                    activePhotoId={state.activePhotoId}
-                    onPageIndexChange={actions.setPageIndex}
-                    onSetActivePhotoId={actions.setActivePhotoId}
-                />
+                    <PreviewPanel />
 
-                <PrintSettingsPanel
-                    paperId={state.paperId}
-                    layoutId={state.layoutId}
-                    orientation={state.orientation}
-                    unit={state.unit}
-                    layoutColumns={state.selectedLayoutColumns}
-                    layoutRows={state.selectedLayoutRows}
-                    gridAlignment={state.gridAlignment}
-                    activePhoto={state.activePhoto}
-                    paperPresets={state.paperPresets}
-                    layoutPresets={state.layoutPresets}
-                    settingsProfiles={state.settingsProfiles}
-                    widthInput={state.widthInput}
-                    heightInput={state.heightInput}
-                    marginInput={state.marginInput}
-                    horizontalGapInput={state.horizontalGapInput}
-                    verticalGapInput={state.verticalGapInput}
-                    onPaperIdChange={actions.setPaperId}
-                    onLayoutChange={actions.updateLayout}
-                    onOrientationChange={actions.setOrientation}
-                    onUnitChange={actions.updateUnit}
-                    onLayoutColumnsChange={actions.updateLayoutColumns}
-                    onLayoutRowsChange={actions.updateLayoutRows}
-                    onGridAlignmentChange={actions.setGridAlignment}
-                    showCropGuides={state.showCropGuides}
-                    onShowCropGuidesChange={actions.setShowCropGuides}
-                    onActivePhotoRotate={actions.updateActivePhotoRotation}
-                    onActivePhotoFitModeChange={actions.updateActivePhotoFitMode}
-                    onActivePhotoManualPositionEnabledChange={
-                        actions.updateActivePhotoManualPositionEnabled
-                    }
-                    onActivePhotoNudgeChange={actions.updateActivePhotoNudge}
-                    onSaveSettingsProfile={actions.saveSettingsProfile}
-                    onLoadSettingsProfile={actions.loadSettingsProfile}
-                    onDeleteSettingsProfile={actions.deleteSettingsProfile}
-                />
-            </main>
+                    <PrintSettingsPanel />
+                </main>
 
-            <PrintPages
-                pages={state.pages}
-                pageSize={state.pageSize}
-                selectedLayoutColumns={state.selectedLayoutColumns}
-                cellWidthMm={state.cellWidthMm}
-                cellHeightMm={state.cellHeightMm}
-                marginMm={state.marginMm}
-                horizontalGapMm={state.horizontalGapMm}
-                verticalGapMm={state.verticalGapMm}
-                gridWidthMm={state.gridWidthMm}
-                gridHeightMm={state.gridHeightMm}
-                gridAlignment={state.gridAlignment}
-                showCropGuides={state.showCropGuides}
-            />
+                <PrintPages />
+            </PrintJobProvider>
         </div>
     )
 }

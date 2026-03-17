@@ -1,44 +1,18 @@
 import { getGridOriginMm, getPhotoObjectPosition } from '@/lib/print-layout'
-import type { GridAlignment, PageAssignment } from '@/types/print'
+import { usePrintJobState } from '@/hooks/use-print-job-context'
 
-interface PrintPagesProps {
-    pages: PageAssignment[]
-    pageSize: { widthMm: number; heightMm: number }
-    selectedLayoutColumns: number
-    cellWidthMm: number
-    cellHeightMm: number
-    marginMm: number
-    horizontalGapMm: number
-    verticalGapMm: number
-    gridWidthMm: number
-    gridHeightMm: number
-    gridAlignment: GridAlignment
-    showCropGuides: boolean
-}
+export function PrintPages() {
+    const state = usePrintJobState()
 
-export function PrintPages({
-    pages,
-    pageSize,
-    selectedLayoutColumns,
-    cellWidthMm,
-    cellHeightMm,
-    marginMm,
-    horizontalGapMm,
-    verticalGapMm,
-    gridWidthMm,
-    gridHeightMm,
-    gridAlignment,
-    showCropGuides
-}: PrintPagesProps) {
     return (
         <section className="print-pages">
-            {pages.map((page) => (
+            {state.pages.map((page) => (
                 <div
                     key={`print-page-${page.pageIndex}`}
                     className="print-page relative overflow-hidden"
                     style={{
-                        width: `${pageSize.widthMm}mm`,
-                        height: `${pageSize.heightMm}mm`,
+                        width: `${state.pageSize.widthMm}mm`,
+                        height: `${state.pageSize.heightMm}mm`,
                         margin: '0 auto',
                         backgroundColor: 'white'
                     }}
@@ -48,18 +22,20 @@ export function PrintPages({
                             return null
                         }
 
-                        const columnIndex = slot.slotIndex % selectedLayoutColumns
-                        const rowIndex = Math.floor(slot.slotIndex / selectedLayoutColumns)
+                        const columnIndex = slot.slotIndex % state.selectedLayoutColumns
+                        const rowIndex = Math.floor(slot.slotIndex / state.selectedLayoutColumns)
                         const origin = getGridOriginMm(
-                            pageSize.widthMm,
-                            pageSize.heightMm,
-                            gridWidthMm,
-                            gridHeightMm,
-                            marginMm,
-                            gridAlignment
+                            state.pageSize.widthMm,
+                            state.pageSize.heightMm,
+                            state.gridWidthMm,
+                            state.gridHeightMm,
+                            state.marginMm,
+                            state.gridAlignment
                         )
-                        const offsetX = origin.xMm + columnIndex * (cellWidthMm + horizontalGapMm)
-                        const offsetY = origin.yMm + rowIndex * (cellHeightMm + verticalGapMm)
+                        const offsetX =
+                            origin.xMm + columnIndex * (state.cellWidthMm + state.horizontalGapMm)
+                        const offsetY =
+                            origin.yMm + rowIndex * (state.cellHeightMm + state.verticalGapMm)
 
                         return (
                             <div
@@ -68,12 +44,12 @@ export function PrintPages({
                                     position: 'absolute',
                                     left: `${offsetX}mm`,
                                     top: `${offsetY}mm`,
-                                    width: `${cellWidthMm}mm`,
-                                    height: `${cellHeightMm}mm`,
+                                    width: `${state.cellWidthMm}mm`,
+                                    height: `${state.cellHeightMm}mm`,
                                     overflow: 'visible'
                                 }}
                             >
-                                {showCropGuides ? (
+                                {state.showCropGuides ? (
                                     <>
                                         <div style={{ position: 'absolute', left: 0, top: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
                                         <div style={{ position: 'absolute', left: '-3mm', top: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
