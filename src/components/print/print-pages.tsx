@@ -1,5 +1,5 @@
-import { getPhotoObjectPosition } from '@/lib/print-layout'
-import type { PageAssignment } from '@/types/print'
+import { getGridOriginMm, getPhotoObjectPosition } from '@/lib/print-layout'
+import type { GridAlignment, PageAssignment } from '@/types/print'
 
 interface PrintPagesProps {
     pages: PageAssignment[]
@@ -7,9 +7,13 @@ interface PrintPagesProps {
     selectedLayoutColumns: number
     cellWidthMm: number
     cellHeightMm: number
-    gapMm: number
+    marginMm: number
+    horizontalGapMm: number
+    verticalGapMm: number
     gridWidthMm: number
     gridHeightMm: number
+    gridAlignment: GridAlignment
+    showCropGuides: boolean
 }
 
 export function PrintPages({
@@ -18,9 +22,13 @@ export function PrintPages({
     selectedLayoutColumns,
     cellWidthMm,
     cellHeightMm,
-    gapMm,
+    marginMm,
+    horizontalGapMm,
+    verticalGapMm,
     gridWidthMm,
-    gridHeightMm
+    gridHeightMm,
+    gridAlignment,
+    showCropGuides
 }: PrintPagesProps) {
     return (
         <section className="print-pages">
@@ -42,12 +50,16 @@ export function PrintPages({
 
                         const columnIndex = slot.slotIndex % selectedLayoutColumns
                         const rowIndex = Math.floor(slot.slotIndex / selectedLayoutColumns)
-                        const offsetX =
-                            (pageSize.widthMm - gridWidthMm) / 2 +
-                            columnIndex * (cellWidthMm + gapMm)
-                        const offsetY =
-                            (pageSize.heightMm - gridHeightMm) / 2 +
-                            rowIndex * (cellHeightMm + gapMm)
+                        const origin = getGridOriginMm(
+                            pageSize.widthMm,
+                            pageSize.heightMm,
+                            gridWidthMm,
+                            gridHeightMm,
+                            marginMm,
+                            gridAlignment
+                        )
+                        const offsetX = origin.xMm + columnIndex * (cellWidthMm + horizontalGapMm)
+                        const offsetY = origin.yMm + rowIndex * (cellHeightMm + verticalGapMm)
 
                         return (
                             <div
@@ -58,23 +70,44 @@ export function PrintPages({
                                     top: `${offsetY}mm`,
                                     width: `${cellWidthMm}mm`,
                                     height: `${cellHeightMm}mm`,
-                                    overflow: 'hidden',
-                                    border: '0.2mm solid #d4d4d4'
+                                    overflow: 'visible'
                                 }}
                             >
-                                <img
-                                    src={slot.photo.url}
-                                    alt={slot.photo.name}
+                                {showCropGuides ? (
+                                    <>
+                                        <div style={{ position: 'absolute', left: 0, top: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                        <div style={{ position: 'absolute', left: '-3mm', top: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
+                                        <div style={{ position: 'absolute', right: 0, top: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                        <div style={{ position: 'absolute', right: '-3mm', top: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
+                                        <div style={{ position: 'absolute', left: 0, bottom: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                        <div style={{ position: 'absolute', left: '-3mm', bottom: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
+                                        <div style={{ position: 'absolute', right: 0, bottom: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                        <div style={{ position: 'absolute', right: '-3mm', bottom: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
+                                    </>
+                                ) : null}
+                                <div
                                     style={{
+                                        position: 'relative',
+                                        zIndex: 1,
                                         width: '100%',
                                         height: '100%',
-                                        objectFit:
-                                            slot.photo.fitMode === 'fill' ? 'cover' : 'contain',
-                                        objectPosition: getPhotoObjectPosition(slot.photo),
-                                        transform: `rotate(${slot.photo.rotationDeg}deg)`,
-                                        transformOrigin: 'center center'
+                                        overflow: 'hidden'
                                     }}
-                                />
+                                >
+                                    <img
+                                        src={slot.photo.url}
+                                        alt={slot.photo.name}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit:
+                                                slot.photo.fitMode === 'fill' ? 'cover' : 'contain',
+                                            objectPosition: getPhotoObjectPosition(slot.photo),
+                                            transform: `rotate(${slot.photo.rotationDeg}deg)`,
+                                            transformOrigin: 'center center'
+                                        }}
+                                    />
+                                </div>
                             </div>
                         )
                     })}

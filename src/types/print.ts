@@ -4,6 +4,17 @@ export type Orientation = 'portrait' | 'landscape'
 
 export type FitMode = 'fit' | 'fill'
 
+export type GridAlignment =
+    | 'top-left'
+    | 'top-center'
+    | 'top-right'
+    | 'center-left'
+    | 'center'
+    | 'center-right'
+    | 'bottom-left'
+    | 'bottom-center'
+    | 'bottom-right'
+
 export type BuiltInLayoutId = 'single' | 'two' | 'four' | 'contact' | 'passport'
 
 export type LayoutPresetId = string
@@ -63,7 +74,11 @@ export interface PrintSettingsSnapshot {
     cellWidthMm: number
     cellHeightMm: number
     marginMm: number
-    gapMm: number
+    gapMm?: number
+    horizontalGapMm: number
+    verticalGapMm: number
+    showCropGuides: boolean
+    gridAlignment: GridAlignment
 }
 
 export interface PrintSettingsProfile {

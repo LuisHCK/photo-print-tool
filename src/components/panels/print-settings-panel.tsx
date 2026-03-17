@@ -3,6 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+    ArrowDown,
+    ArrowLeft,
+    ArrowRight,
+    ArrowUp,
+    ChevronDown,
+    ChevronUp,
+    Circle,
+    MoveDownLeft,
+    MoveDownRight,
+    MoveUpLeft,
+    MoveUpRight,
+    type LucideIcon
+} from 'lucide-react'
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -15,6 +29,7 @@ import { PrintSettingsProfilesSection } from '@/components/panels/print-settings
 import type { NumericInputController } from '@/hooks/use-print-job'
 import type {
     FitMode,
+    GridAlignment,
     LayoutPreset,
     LayoutPresetId,
     Orientation,
@@ -24,7 +39,20 @@ import type {
     PhotoItem,
     Unit
 } from '@/types/print'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+
+const GRID_ALIGNMENT_OPTIONS: Array<{ value: GridAlignment; icon: LucideIcon }> = [
+    { value: 'top-left', icon: MoveUpLeft },
+    { value: 'top-center', icon: ArrowUp },
+    { value: 'top-right', icon: MoveUpRight },
+    { value: 'center-left', icon: ArrowLeft },
+    { value: 'center', icon: Circle },
+    { value: 'center-right', icon: ArrowRight },
+    { value: 'bottom-left', icon: MoveDownLeft },
+    { value: 'bottom-center', icon: ArrowDown },
+    { value: 'bottom-right', icon: MoveDownRight }
+]
 
 interface PrintSettingsPanelProps {
     paperId: PaperPresetId
@@ -33,6 +61,7 @@ interface PrintSettingsPanelProps {
     unit: Unit
     layoutColumns: number
     layoutRows: number
+    gridAlignment: GridAlignment
     activePhoto: PhotoItem | null
     paperPresets: PaperPreset[]
     layoutPresets: LayoutPreset[]
@@ -40,13 +69,17 @@ interface PrintSettingsPanelProps {
     widthInput: NumericInputController
     heightInput: NumericInputController
     marginInput: NumericInputController
-    gapInput: NumericInputController
+    horizontalGapInput: NumericInputController
+    verticalGapInput: NumericInputController
+    showCropGuides: boolean
     onPaperIdChange: (paperId: PaperPresetId) => void
     onLayoutChange: (layoutId: LayoutPresetId) => void
     onOrientationChange: (orientation: Orientation) => void
     onUnitChange: (unit: Unit) => void
     onLayoutColumnsChange: (columns: number) => void
     onLayoutRowsChange: (rows: number) => void
+    onGridAlignmentChange: (alignment: GridAlignment) => void
+    onShowCropGuidesChange: (show: boolean) => void
     onActivePhotoRotate: (delta: number) => void
     onActivePhotoFitModeChange: (fitMode: FitMode) => void
     onActivePhotoManualPositionEnabledChange: (enabled: boolean) => void
@@ -63,6 +96,7 @@ export function PrintSettingsPanel({
     unit,
     layoutColumns,
     layoutRows,
+    gridAlignment,
     activePhoto,
     paperPresets,
     layoutPresets,
@@ -70,13 +104,17 @@ export function PrintSettingsPanel({
     widthInput,
     heightInput,
     marginInput,
-    gapInput,
+    horizontalGapInput,
+    verticalGapInput,
+    showCropGuides,
     onPaperIdChange,
     onLayoutChange,
     onOrientationChange,
     onUnitChange,
     onLayoutColumnsChange,
     onLayoutRowsChange,
+    onGridAlignmentChange,
+    onShowCropGuidesChange,
     onActivePhotoRotate,
     onActivePhotoFitModeChange,
     onActivePhotoManualPositionEnabledChange,
@@ -86,6 +124,7 @@ export function PrintSettingsPanel({
     onDeleteSettingsProfile
 }: PrintSettingsPanelProps) {
     const { t } = useTranslation()
+    const [showAlignmentPicker, setShowAlignmentPicker] = useState(false)
 
     return (
         <Card className="py-4">
@@ -225,7 +264,7 @@ export function PrintSettingsPanel({
 
                 <div className="space-y-2">
                     <Label>{t('settings.pageSpacing', { unit })}</Label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                         <Input
                             type="number"
                             step="any"
@@ -244,18 +283,87 @@ export function PrintSettingsPanel({
                             type="number"
                             step="any"
                             min={0}
-                            value={gapInput.value}
-                            onBlur={gapInput.onBlur}
-                            onChange={(event) => gapInput.onChange(event.target.value)}
+                            value={horizontalGapInput.value}
+                            onBlur={horizontalGapInput.onBlur}
+                            onChange={(event) => horizontalGapInput.onChange(event.target.value)}
                             onKeyDown={(event) => {
                                 if (event.key === 'Enter') {
-                                    gapInput.onEnter()
+                                    horizontalGapInput.onEnter()
+                                    event.currentTarget.blur()
+                                }
+                            }}
+                        />
+                        <Input
+                            type="number"
+                            step="any"
+                            min={0}
+                            value={verticalGapInput.value}
+                            onBlur={verticalGapInput.onBlur}
+                            onChange={(event) => verticalGapInput.onChange(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter') {
+                                    verticalGapInput.onEnter()
                                     event.currentTarget.blur()
                                 }
                             }}
                         />
                     </div>
-                    <div className="text-muted-foreground text-xs">{t('settings.marginGap')}</div>
+                    <div className="text-muted-foreground text-xs">{t('settings.marginHorizontalVerticalGap')}</div>
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between rounded-md border p-3">
+                        <Label className="text-sm">{t('settings.cropGuides')}</Label>
+                        <Switch checked={showCropGuides} onCheckedChange={onShowCropGuidesChange} />
+                    </div>
+                    <div className="text-muted-foreground text-xs">{t('settings.cropGuidesHelp')}</div>
+                </div>
+
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <Label>{t('settings.gridAlignment')}</Label>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowAlignmentPicker((previous) => !previous)}
+                            aria-expanded={showAlignmentPicker}
+                        >
+                            {showAlignmentPicker ? t('settings.hideAlignment') : t('settings.showAlignment')}
+                            {showAlignmentPicker ? (
+                                <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                            ) : (
+                                <ChevronDown className="h-4 w-4" aria-hidden="true" />
+                            )}
+                        </Button>
+                    </div>
+                    {showAlignmentPicker ? (
+                        <>
+                            <div className="grid grid-cols-3 gap-2">
+                                {GRID_ALIGNMENT_OPTIONS.map((option) => {
+                                    const Icon = option.icon
+                                    const isActive = option.value === gridAlignment
+
+                                    return (
+                                        <Button
+                                            key={option.value}
+                                            type="button"
+                                            variant={isActive ? 'default' : 'outline'}
+                                            size="icon"
+                                            onClick={() => onGridAlignmentChange(option.value)}
+                                            aria-label={t(`settings.alignment.${option.value}`)}
+                                            title={t(`settings.alignment.${option.value}`)}
+                                        >
+                                            <Icon className="h-4 w-4" aria-hidden="true" />
+                                        </Button>
+                                    )
+                                })}
+                            </div>
+                            <div className="text-muted-foreground text-xs">
+                                {t('settings.gridAlignmentHelp')}
+                            </div>
+                        </>
+                    ) : null}
                 </div>
 
                 <Separator />

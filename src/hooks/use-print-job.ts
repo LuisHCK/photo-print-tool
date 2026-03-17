@@ -10,6 +10,7 @@ import {
 import { formatValue, parseInputToMm } from '@/lib/units'
 import type {
     FitMode,
+    GridAlignment,
     LayoutPreset,
     LayoutPresetId,
     Orientation,
@@ -23,6 +24,18 @@ import type {
 } from '@/types/print'
 
 const PRINT_SETTINGS_PROFILES_KEY = 'photo-print.settings-profiles.v1'
+const DEFAULT_GRID_ALIGNMENT: GridAlignment = 'top-left'
+const GRID_ALIGNMENTS: GridAlignment[] = [
+    'top-left',
+    'top-center',
+    'top-right',
+    'center-left',
+    'center',
+    'center-right',
+    'bottom-left',
+    'bottom-center',
+    'bottom-right'
+]
 
 function safeParseProfiles(raw: string): PrintSettingsProfile[] {
     try {
@@ -125,16 +138,20 @@ export interface PrintJobState {
     selectedPaperName: string
     cellWidthMm: number
     cellHeightMm: number
-    gapMm: number
+    horizontalGapMm: number
+    verticalGapMm: number
     marginMm: number
     gridWidthMm: number
     gridHeightMm: number
     selectedLayoutColumns: number
     selectedLayoutRows: number
+    gridAlignment: GridAlignment
+    showCropGuides: boolean
     widthInput: NumericInputController
     heightInput: NumericInputController
     marginInput: NumericInputController
-    gapInput: NumericInputController
+    horizontalGapInput: NumericInputController
+    verticalGapInput: NumericInputController
     paperPresets: PaperPreset[]
     layoutPresets: LayoutPreset[]
     settingsProfiles: PrintSettingsProfile[]
@@ -147,6 +164,8 @@ export interface PrintJobActions {
     updateLayout: (nextLayoutId: LayoutPresetId) => void
     updateLayoutColumns: (nextColumns: number) => void
     updateLayoutRows: (nextRows: number) => void
+    setGridAlignment: (nextAlignment: GridAlignment) => void
+    setShowCropGuides: (show: boolean) => void
     updateUnit: (nextUnit: Unit) => void
     setActivePhotoId: (photoId: string | null) => void
     handleFileUpload: (event: ChangeEvent<HTMLInputElement>) => Promise<void>
@@ -175,18 +194,26 @@ export function usePrintJob(): {
     const [orientation, setOrientation] = useState<Orientation>('portrait')
     const [unit, setUnit] = useState<Unit>('cm')
     const [marginMm, setMarginMm] = useState<number>(8)
-    const [gapMm, setGapMm] = useState<number>(4)
+    const [horizontalGapMm, setHorizontalGapMm] = useState<number>(4)
+    const [verticalGapMm, setVerticalGapMm] = useState<number>(4)
     const [cellWidthMm, setCellWidthMm] = useState<number>(89)
     const [cellHeightMm, setCellHeightMm] = useState<number>(127)
     const [layoutColumns, setLayoutColumns] = useState<number>(2)
     const [layoutRows, setLayoutRows] = useState<number>(2)
+    const [gridAlignment, setGridAlignment] = useState<GridAlignment>(DEFAULT_GRID_ALIGNMENT)
+    const [showCropGuides, setShowCropGuides] = useState<boolean>(true)
     const [pageIndex, setPageIndex] = useState(0)
     const [cellWidthInput, setCellWidthInput] = useState<string>(() => formatNumericInput(89, 'cm'))
     const [cellHeightInput, setCellHeightInput] = useState<string>(() =>
         formatNumericInput(127, 'cm')
     )
     const [marginInput, setMarginInput] = useState<string>(() => formatNumericInput(8, 'cm'))
-    const [gapInput, setGapInput] = useState<string>(() => formatNumericInput(4, 'cm'))
+    const [horizontalGapInput, setHorizontalGapInput] = useState<string>(() =>
+        formatNumericInput(4, 'cm')
+    )
+    const [verticalGapInput, setVerticalGapInput] = useState<string>(() =>
+        formatNumericInput(4, 'cm')
+    )
     const [settingsProfiles, setSettingsProfiles] = useState<PrintSettingsProfile[]>(() =>
         loadSettingsProfilesFromStorage()
     )
@@ -222,8 +249,8 @@ export function usePrintJob(): {
     const previewScale = getPreviewScale(pageSize.widthMm, pageSize.heightMm)
     const slotsPerPage = layoutColumns * layoutRows
 
-    const gridWidthMm = layoutColumns * cellWidthMm + (layoutColumns - 1) * gapMm
-    const gridHeightMm = layoutRows * cellHeightMm + (layoutRows - 1) * gapMm
+    const gridWidthMm = layoutColumns * cellWidthMm + (layoutColumns - 1) * horizontalGapMm
+    const gridHeightMm = layoutRows * cellHeightMm + (layoutRows - 1) * verticalGapMm
     const availableWidthMm = pageSize.widthMm - marginMm * 2
     const availableHeightMm = pageSize.heightMm - marginMm * 2
 
@@ -357,7 +384,8 @@ export function usePrintJob(): {
         setCellWidthInput(formatNumericInput(cellWidthMm, nextUnit))
         setCellHeightInput(formatNumericInput(cellHeightMm, nextUnit))
         setMarginInput(formatNumericInput(marginMm, nextUnit))
-        setGapInput(formatNumericInput(gapMm, nextUnit))
+        setHorizontalGapInput(formatNumericInput(horizontalGapMm, nextUnit))
+        setVerticalGapInput(formatNumericInput(verticalGapMm, nextUnit))
     }
 
     function updateActivePhotoRotation(delta: number) {
@@ -443,7 +471,10 @@ export function usePrintJob(): {
             cellWidthMm,
             cellHeightMm,
             marginMm,
-            gapMm
+            horizontalGapMm,
+            verticalGapMm,
+            showCropGuides,
+            gridAlignment
         }
     }
 
@@ -469,7 +500,18 @@ export function usePrintJob(): {
         const nextMarginMm = Number.isFinite(snapshot.marginMm)
             ? Math.max(snapshot.marginMm, 0)
             : marginMm
-        const nextGapMm = Number.isFinite(snapshot.gapMm) ? Math.max(snapshot.gapMm, 0) : gapMm
+        const fallbackGapMm = Number.isFinite(snapshot.gapMm) ? Math.max(snapshot.gapMm ?? 0, 0) : 4
+        const nextHorizontalGapMm = Number.isFinite(snapshot.horizontalGapMm)
+            ? Math.max(snapshot.horizontalGapMm, 0)
+            : fallbackGapMm
+        const nextVerticalGapMm = Number.isFinite(snapshot.verticalGapMm)
+            ? Math.max(snapshot.verticalGapMm, 0)
+            : fallbackGapMm
+        const nextShowCropGuides =
+            typeof snapshot.showCropGuides === 'boolean' ? snapshot.showCropGuides : true
+        const nextGridAlignment = GRID_ALIGNMENTS.includes(snapshot.gridAlignment)
+            ? snapshot.gridAlignment
+            : DEFAULT_GRID_ALIGNMENT
 
         setPaperId(nextPaper.id)
         setLayoutId(nextLayout.id)
@@ -480,12 +522,16 @@ export function usePrintJob(): {
         setCellWidthMm(nextWidthMm)
         setCellHeightMm(nextHeightMm)
         setMarginMm(nextMarginMm)
-        setGapMm(nextGapMm)
+        setHorizontalGapMm(nextHorizontalGapMm)
+        setVerticalGapMm(nextVerticalGapMm)
+        setGridAlignment(nextGridAlignment)
+        setShowCropGuides(nextShowCropGuides)
 
         setCellWidthInput(formatNumericInput(nextWidthMm, snapshot.unit))
         setCellHeightInput(formatNumericInput(nextHeightMm, snapshot.unit))
         setMarginInput(formatNumericInput(nextMarginMm, snapshot.unit))
-        setGapInput(formatNumericInput(nextGapMm, snapshot.unit))
+        setHorizontalGapInput(formatNumericInput(nextHorizontalGapMm, snapshot.unit))
+        setVerticalGapInput(formatNumericInput(nextVerticalGapMm, snapshot.unit))
         setPageIndex(0)
     }
 
@@ -575,12 +621,15 @@ export function usePrintJob(): {
         selectedPaperName: selectedPaper.name,
         cellWidthMm,
         cellHeightMm,
-        gapMm,
+        horizontalGapMm,
+        verticalGapMm,
         marginMm,
         gridWidthMm,
         gridHeightMm,
         selectedLayoutColumns: layoutColumns,
         selectedLayoutRows: layoutRows,
+        gridAlignment,
+        showCropGuides,
         widthInput: createNumericInputController(
             cellWidthInput,
             setCellWidthInput,
@@ -599,7 +648,18 @@ export function usePrintJob(): {
             marginMm,
             setMarginMm
         ),
-        gapInput: createNumericInputController(gapInput, setGapInput, gapMm, setGapMm),
+        horizontalGapInput: createNumericInputController(
+            horizontalGapInput,
+            setHorizontalGapInput,
+            horizontalGapMm,
+            setHorizontalGapMm
+        ),
+        verticalGapInput: createNumericInputController(
+            verticalGapInput,
+            setVerticalGapInput,
+            verticalGapMm,
+            setVerticalGapMm
+        ),
         paperPresets,
         layoutPresets,
         settingsProfiles
@@ -612,6 +672,8 @@ export function usePrintJob(): {
         updateLayout,
         updateLayoutColumns,
         updateLayoutRows,
+        setGridAlignment,
+        setShowCropGuides,
         updateUnit,
         setActivePhotoId,
         handleFileUpload,

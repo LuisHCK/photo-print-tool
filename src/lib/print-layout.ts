@@ -1,4 +1,5 @@
 import type {
+    GridAlignment,
     LayoutPreset,
     Orientation,
     PageAssignment,
@@ -68,6 +69,33 @@ export function calcEffectivePpi(photo: PhotoItem, widthMm: number, heightMm: nu
     const ppiW = photo.widthPx / widthIn
     const ppiH = photo.heightPx / heightIn
     return Math.min(ppiW, ppiH)
+}
+
+export function getGridOriginMm(
+    pageWidthMm: number,
+    pageHeightMm: number,
+    gridWidthMm: number,
+    gridHeightMm: number,
+    marginMm: number,
+    alignment: GridAlignment
+) {
+    const availableWidthMm = Math.max(pageWidthMm - marginMm * 2, 0)
+    const availableHeightMm = Math.max(pageHeightMm - marginMm * 2, 0)
+    const remainingWidthMm = Math.max(availableWidthMm - gridWidthMm, 0)
+    const remainingHeightMm = Math.max(availableHeightMm - gridHeightMm, 0)
+
+    const isLeft = alignment.endsWith('left')
+    const isRight = alignment.endsWith('right')
+    const isTop = alignment.startsWith('top-')
+    const isBottom = alignment.startsWith('bottom-')
+
+    const horizontalFactor = isLeft ? 0 : isRight ? 1 : 0.5
+    const verticalFactor = isTop ? 0 : isBottom ? 1 : 0.5
+
+    return {
+        xMm: marginMm + remainingWidthMm * horizontalFactor,
+        yMm: marginMm + remainingHeightMm * verticalFactor
+    }
 }
 
 export function getPhotoObjectPosition(photo: PhotoItem) {

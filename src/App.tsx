@@ -36,9 +36,13 @@ function App() {
                     selectedLayoutColumns={state.selectedLayoutColumns}
                     cellWidthMm={state.cellWidthMm}
                     cellHeightMm={state.cellHeightMm}
-                    gapMm={state.gapMm}
+                    marginMm={state.marginMm}
+                    horizontalGapMm={state.horizontalGapMm}
+                    verticalGapMm={state.verticalGapMm}
                     gridWidthMm={state.gridWidthMm}
                     gridHeightMm={state.gridHeightMm}
+                    gridAlignment={state.gridAlignment}
+                    showCropGuides={state.showCropGuides}
                     hasOverflow={state.hasOverflow}
                     ppiWarnings={state.ppiWarnings}
                     activePhotoId={state.activePhotoId}
@@ -53,6 +57,7 @@ function App() {
                     unit={state.unit}
                     layoutColumns={state.selectedLayoutColumns}
                     layoutRows={state.selectedLayoutRows}
+                    gridAlignment={state.gridAlignment}
                     activePhoto={state.activePhoto}
                     paperPresets={state.paperPresets}
                     layoutPresets={state.layoutPresets}
@@ -60,13 +65,17 @@ function App() {
                     widthInput={state.widthInput}
                     heightInput={state.heightInput}
                     marginInput={state.marginInput}
-                    gapInput={state.gapInput}
+                    horizontalGapInput={state.horizontalGapInput}
+                    verticalGapInput={state.verticalGapInput}
                     onPaperIdChange={actions.setPaperId}
                     onLayoutChange={actions.updateLayout}
                     onOrientationChange={actions.setOrientation}
                     onUnitChange={actions.updateUnit}
                     onLayoutColumnsChange={actions.updateLayoutColumns}
                     onLayoutRowsChange={actions.updateLayoutRows}
+                    onGridAlignmentChange={actions.setGridAlignment}
+                    showCropGuides={state.showCropGuides}
+                    onShowCropGuidesChange={actions.setShowCropGuides}
                     onActivePhotoRotate={actions.updateActivePhotoRotation}
                     onActivePhotoFitModeChange={actions.updateActivePhotoFitMode}
                     onActivePhotoManualPositionEnabledChange={
@@ -85,9 +94,13 @@ function App() {
                 selectedLayoutColumns={state.selectedLayoutColumns}
                 cellWidthMm={state.cellWidthMm}
                 cellHeightMm={state.cellHeightMm}
-                gapMm={state.gapMm}
+                marginMm={state.marginMm}
+                horizontalGapMm={state.horizontalGapMm}
+                verticalGapMm={state.verticalGapMm}
                 gridWidthMm={state.gridWidthMm}
                 gridHeightMm={state.gridHeightMm}
+                gridAlignment={state.gridAlignment}
+                showCropGuides={state.showCropGuides}
             />
         </div>
     )
