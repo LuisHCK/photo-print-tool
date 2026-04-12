@@ -101,6 +101,7 @@ async function loadImageSize(file: File, url: string) {
         url,
         widthPx: image.naturalWidth,
         heightPx: image.naturalHeight,
+        copies: 1,
         rotationDeg: 0,
         fitMode: 'fill' as const,
         manualPositionEnabled: false,
@@ -174,6 +175,7 @@ export interface PrintJobActions {
     togglePhotoSelection: (photoId: string, selected: boolean) => void
     removePhoto: (photoId: string) => void
     updateActivePhotoRotation: (delta: number) => void
+    updateActivePhotoCopies: (nextCopies: number) => void
     updateActivePhotoFitMode: (nextFitMode: FitMode) => void
     updateActivePhotoManualPositionEnabled: (enabled: boolean) => void
     updateActivePhotoNudge: (
@@ -239,10 +241,18 @@ export function usePrintJob(): {
     )
 
     const selectedPhotos = useMemo(() => photos.filter((photo) => photo.selected), [photos])
+    const queuedPhotos = useMemo(
+        () =>
+            selectedPhotos.flatMap((photo) => {
+                const copies = Number.isInteger(photo.copies) ? Math.max(photo.copies, 1) : 1
+                return Array.from({ length: copies }, () => photo)
+            }),
+        [selectedPhotos]
+    )
 
     const pages = useMemo(
-        () => buildPageAssignments(effectiveLayout, selectedPhotos, maxCopiesPerPage),
-        [effectiveLayout, maxCopiesPerPage, selectedPhotos]
+        () => buildPageAssignments(effectiveLayout, queuedPhotos, maxCopiesPerPage),
+        [effectiveLayout, maxCopiesPerPage, queuedPhotos]
     )
 
     const currentPage = pages[pageIndex] ?? null
@@ -428,6 +438,19 @@ export function usePrintJob(): {
                 return { ...photo, rotationDeg: nextRotation }
             })
         )
+    }
+
+    function updateActivePhotoCopies(nextCopies: number) {
+        if (!activePhoto || !Number.isInteger(nextCopies) || nextCopies < 1) {
+            return
+        }
+
+        setPhotos((previous) =>
+            previous.map((photo) =>
+                photo.id === activePhoto.id ? { ...photo, copies: nextCopies } : photo
+            )
+        )
+        setPageIndex(0)
     }
 
     function updateActivePhotoFitMode(nextFitMode: FitMode) {
@@ -712,6 +735,7 @@ export function usePrintJob(): {
         togglePhotoSelection,
         removePhoto,
         updateActivePhotoRotation,
+        updateActivePhotoCopies,
         updateActivePhotoFitMode,
         updateActivePhotoManualPositionEnabled,
         updateActivePhotoNudge,

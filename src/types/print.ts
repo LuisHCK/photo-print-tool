@@ -44,6 +44,7 @@ export interface PhotoItem {
     url: string
     widthPx: number
     heightPx: number
+    copies: number
     rotationDeg: number
     fitMode: FitMode
     manualPositionEnabled: boolean

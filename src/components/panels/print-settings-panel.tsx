@@ -353,6 +353,18 @@ export function PrintSettingsPanel() {
                                     <SelectItem value="fit">{t('settings.fit')}</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <div className="space-y-1">
+                                <Label className="text-xs">{t('settings.photoCopies')}</Label>
+                                <Input
+                                    type="number"
+                                    min={1}
+                                    step="1"
+                                    value={state.activePhoto.copies}
+                                    onChange={(event) =>
+                                        actions.updateActivePhotoCopies(Number(event.target.value))
+                                    }
+                                />
+                            </div>
 
                             <div className="space-y-2 rounded-md border p-3">
                                 <div className="flex items-center justify-between">
