@@ -37,7 +37,7 @@ export function buildPageAssignments(
             ? Math.min(Math.max(Math.floor(maxCopiesPerPage), 1), capacity)
             : capacity
 
-    if (layout.repeatSinglePhoto) {
+    if (layout.repeatSinglePhoto && selectedPhotos.length === 1) {
         const firstPhoto = selectedPhotos[0]
         return [
             {
