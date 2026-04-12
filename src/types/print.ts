@@ -71,6 +71,7 @@ export interface PrintSettingsSnapshot {
     unit: Unit
     layoutColumns: number
     layoutRows: number
+    maxCopiesPerPage?: number
     cellWidthMm: number
     cellHeightMm: number
     marginMm: number

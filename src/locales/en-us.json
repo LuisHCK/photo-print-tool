@@ -50,6 +50,7 @@
     "landscape": "Landscape",
     "copiesPerPage": "Copies per page",
     "columnsRows": "Columns / Rows",
+    "columnsRowsMaxCopies": "Columns / Rows / Max copies used",
     "exactPrintSize": "Exact print size ({{unit}})",
     "widthHeight": "Width / Height",
     "pageSpacing": "Page spacing ({{unit}})",

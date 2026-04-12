@@ -145,6 +145,7 @@ export interface PrintJobState {
     gridHeightMm: number
     selectedLayoutColumns: number
     selectedLayoutRows: number
+    maxCopiesPerPage: number
     gridAlignment: GridAlignment
     showCropGuides: boolean
     widthInput: NumericInputController
@@ -164,6 +165,7 @@ export interface PrintJobActions {
     updateLayout: (nextLayoutId: LayoutPresetId) => void
     updateLayoutColumns: (nextColumns: number) => void
     updateLayoutRows: (nextRows: number) => void
+    setMaxCopiesPerPage: (nextMaxCopies: number) => void
     setGridAlignment: (nextAlignment: GridAlignment) => void
     setShowCropGuides: (show: boolean) => void
     updateUnit: (nextUnit: Unit) => void
@@ -200,6 +202,7 @@ export function usePrintJob(): {
     const [cellHeightMm, setCellHeightMm] = useState<number>(127)
     const [layoutColumns, setLayoutColumns] = useState<number>(2)
     const [layoutRows, setLayoutRows] = useState<number>(2)
+    const [maxCopiesPerPage, setMaxCopiesPerPage] = useState<number>(4)
     const [gridAlignment, setGridAlignment] = useState<GridAlignment>(DEFAULT_GRID_ALIGNMENT)
     const [showCropGuides, setShowCropGuides] = useState<boolean>(true)
     const [pageIndex, setPageIndex] = useState(0)
@@ -238,8 +241,8 @@ export function usePrintJob(): {
     const selectedPhotos = useMemo(() => photos.filter((photo) => photo.selected), [photos])
 
     const pages = useMemo(
-        () => buildPageAssignments(effectiveLayout, selectedPhotos),
-        [effectiveLayout, selectedPhotos]
+        () => buildPageAssignments(effectiveLayout, selectedPhotos, maxCopiesPerPage),
+        [effectiveLayout, maxCopiesPerPage, selectedPhotos]
     )
 
     const currentPage = pages[pageIndex] ?? null
@@ -247,7 +250,8 @@ export function usePrintJob(): {
 
     const pageSize = getPageSizeMm(selectedPaper, orientation)
     const previewScale = getPreviewScale(pageSize.widthMm, pageSize.heightMm)
-    const slotsPerPage = layoutColumns * layoutRows
+    const gridCapacity = layoutColumns * layoutRows
+    const slotsPerPage = Math.min(maxCopiesPerPage, gridCapacity)
 
     const gridWidthMm = layoutColumns * cellWidthMm + (layoutColumns - 1) * horizontalGapMm
     const gridHeightMm = layoutRows * cellHeightMm + (layoutRows - 1) * verticalGapMm
@@ -280,6 +284,11 @@ export function usePrintJob(): {
         }
 
         return currentValueMm
+    }
+
+    function clampCopiesToCapacity(value: number, columns: number, rows: number) {
+        const capacity = columns * rows
+        return Math.min(Math.max(value, 1), capacity)
     }
 
     function createNumericInputController(
@@ -354,6 +363,7 @@ export function usePrintJob(): {
         setLayoutId(nextLayout.id)
         setLayoutColumns(nextLayout.columns)
         setLayoutRows(nextLayout.rows)
+        setMaxCopiesPerPage(nextLayout.columns * nextLayout.rows)
         setCellWidthMm(nextLayout.defaultCellWidthMm)
         setCellHeightMm(nextLayout.defaultCellHeightMm)
         setCellWidthInput(formatNumericInput(nextLayout.defaultCellWidthMm, unit))
@@ -367,6 +377,9 @@ export function usePrintJob(): {
         }
 
         setLayoutColumns(nextColumns)
+        setMaxCopiesPerPage((previous) =>
+            clampCopiesToCapacity(previous, nextColumns, layoutRows)
+        )
         setPageIndex(0)
     }
 
@@ -376,6 +389,18 @@ export function usePrintJob(): {
         }
 
         setLayoutRows(nextRows)
+        setMaxCopiesPerPage((previous) =>
+            clampCopiesToCapacity(previous, layoutColumns, nextRows)
+        )
+        setPageIndex(0)
+    }
+
+    function updateMaxCopiesPerPage(nextMaxCopies: number) {
+        if (!Number.isInteger(nextMaxCopies) || nextMaxCopies < 1) {
+            return
+        }
+
+        setMaxCopiesPerPage(clampCopiesToCapacity(nextMaxCopies, layoutColumns, layoutRows))
         setPageIndex(0)
     }
 
@@ -468,6 +493,7 @@ export function usePrintJob(): {
             unit,
             layoutColumns,
             layoutRows,
+            maxCopiesPerPage,
             cellWidthMm,
             cellHeightMm,
             marginMm,
@@ -490,6 +516,9 @@ export function usePrintJob(): {
         const nextRows = Number.isInteger(snapshot.layoutRows)
             ? Math.max(snapshot.layoutRows, 1)
             : nextLayout.rows
+        const nextMaxCopiesPerPage = Number.isInteger(snapshot.maxCopiesPerPage)
+            ? Math.max(snapshot.maxCopiesPerPage ?? 1, 1)
+            : nextColumns * nextRows
 
         const nextWidthMm = Number.isFinite(snapshot.cellWidthMm)
             ? Math.max(snapshot.cellWidthMm, 0.1)
@@ -519,6 +548,7 @@ export function usePrintJob(): {
         setUnit(snapshot.unit)
         setLayoutColumns(nextColumns)
         setLayoutRows(nextRows)
+        setMaxCopiesPerPage(clampCopiesToCapacity(nextMaxCopiesPerPage, nextColumns, nextRows))
         setCellWidthMm(nextWidthMm)
         setCellHeightMm(nextHeightMm)
         setMarginMm(nextMarginMm)
@@ -628,6 +658,7 @@ export function usePrintJob(): {
         gridHeightMm,
         selectedLayoutColumns: layoutColumns,
         selectedLayoutRows: layoutRows,
+        maxCopiesPerPage,
         gridAlignment,
         showCropGuides,
         widthInput: createNumericInputController(
@@ -672,6 +703,7 @@ export function usePrintJob(): {
         updateLayout,
         updateLayoutColumns,
         updateLayoutRows,
+        setMaxCopiesPerPage: updateMaxCopiesPerPage,
         setGridAlignment,
         setShowCropGuides,
         updateUnit,

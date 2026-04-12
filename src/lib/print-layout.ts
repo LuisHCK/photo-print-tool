@@ -24,13 +24,18 @@ export function getPreviewScale(widthMm: number, heightMm: number) {
 
 export function buildPageAssignments(
     layout: LayoutPreset,
-    selectedPhotos: PhotoItem[]
+    selectedPhotos: PhotoItem[],
+    maxCopiesPerPage?: number
 ): PageAssignment[] {
     if (selectedPhotos.length === 0) {
         return []
     }
 
-    const slotsPerPage = layout.columns * layout.rows
+    const capacity = layout.columns * layout.rows
+    const slotsPerPage =
+        typeof maxCopiesPerPage === 'number'
+            ? Math.min(Math.max(Math.floor(maxCopiesPerPage), 1), capacity)
+            : capacity
 
     if (layout.repeatSinglePhoto) {
         const firstPhoto = selectedPhotos[0]

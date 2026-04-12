@@ -50,6 +50,7 @@
     "landscape": "Horizontal",
     "copiesPerPage": "Copias por página",
     "columnsRows": "Columnas / Filas",
+    "columnsRowsMaxCopies": "Columnas / Filas / Máx. copias usadas",
     "exactPrintSize": "Tamaño exacto de impresión ({{unit}})",
     "widthHeight": "Ancho / Alto",
     "pageSpacing": "Espaciado de página ({{unit}})",

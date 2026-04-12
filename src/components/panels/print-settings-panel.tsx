@@ -135,7 +135,7 @@ export function PrintSettingsPanel() {
 
                 <div className="space-y-2">
                     <Label>{t('settings.copiesPerPage')}</Label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                         <Input
                             type="number"
                             min={1}
@@ -154,8 +154,20 @@ export function PrintSettingsPanel() {
                                 actions.updateLayoutRows(Number(event.target.value))
                             }
                         />
+                        <Input
+                            type="number"
+                            min={1}
+                            max={state.selectedLayoutColumns * state.selectedLayoutRows}
+                            step="1"
+                            value={state.maxCopiesPerPage}
+                            onChange={(event) =>
+                                actions.setMaxCopiesPerPage(Number(event.target.value))
+                            }
+                        />
                     </div>
-                    <div className="text-muted-foreground text-xs">{t('settings.columnsRows')}</div>
+                    <div className="text-muted-foreground text-xs">
+                        {t('settings.columnsRowsMaxCopies')}
+                    </div>
                 </div>
 
                 <div className="space-y-2">
