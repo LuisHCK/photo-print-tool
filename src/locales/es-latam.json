@@ -62,6 +62,13 @@
     "showAlignment": "Mostrar",
     "hideAlignment": "Ocultar",
     "gridAlignmentHelp": "Elige dónde se coloca la cuadrícula de fotos dentro de los márgenes.",
+    "categories": {
+      "layout": "Diseño y copias",
+      "sizeAndSpacing": "Tamaño y espaciado",
+      "guidesAndAlignment": "Guías y alineación",
+      "selectedPhoto": "Foto seleccionada",
+      "profiles": "Perfiles"
+    },
     "alignment": {
       "top-left": "Arriba izquierda",
       "top-center": "Arriba centro",

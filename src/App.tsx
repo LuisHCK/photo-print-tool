@@ -15,7 +15,7 @@ function App() {
             <AppHeader onPrint={printNow} />
 
             <PrintJobProvider>
-                <main className="no-print grid grid-cols-1 gap-4 p-4 xl:grid-cols-[320px_1fr_360px]">
+                <main className="no-print grid items-start grid-cols-1 gap-4 p-4 xl:grid-cols-[320px_1fr_360px]">
                     <PhotosPanel />
 
                     <PreviewPanel />

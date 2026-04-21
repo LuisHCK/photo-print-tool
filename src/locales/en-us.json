@@ -62,6 +62,13 @@
     "showAlignment": "Show",
     "hideAlignment": "Hide",
     "gridAlignmentHelp": "Choose where the photo grid sits inside the page margins.",
+    "categories": {
+      "layout": "Layout & copies",
+      "sizeAndSpacing": "Size & spacing",
+      "guidesAndAlignment": "Guides & alignment",
+      "selectedPhoto": "Selected photo",
+      "profiles": "Profiles"
+    },
     "alignment": {
       "top-left": "Top left",
       "top-center": "Top center",
