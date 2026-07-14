@@ -26,6 +26,7 @@ import type {
     SettingsSectionId,
     Unit
 } from '@/types/print'
+import { trackEvent } from '@/lib/analytics'
 
 const CUSTOM_PRESETS_KEY = 'photo-print.custom-presets.v1'
 const OPEN_SECTIONS_KEY = 'photo-print.open-sections.v1'
@@ -440,6 +441,8 @@ export function usePrintJob(): {
         setSectionOpen('sizeAndSpacing', false)
         setSectionOpen('selectedPhoto', false)
 
+        trackEvent('import_photos', { count: loadedPhotos.length })
+
         event.target.value = ''
     }
 
@@ -734,6 +737,8 @@ export function usePrintJob(): {
             return next
         })
 
+        trackEvent('save_preset', { name: trimmedName })
+
         return { id, mode: 'created' }
     }
 
@@ -743,19 +748,24 @@ export function usePrintJob(): {
             return
         }
 
+        trackEvent('load_preset', { name: preset.name })
         applySettingsSnapshot(preset.settings)
     }
 
     function deleteCustomPreset(presetId: string) {
+        const target = customPresets.find((entry) => entry.id === presetId)
         setCustomPresets((previous) => {
             const next = previous.filter((preset) => preset.id !== presetId)
             saveCustomPresetsToStorage(next)
             return next
         })
+        trackEvent('delete_preset', { name: target?.name ?? 'unknown' })
     }
 
     function handlePrintSizeChange(nextId: PrintSizeId) {
         setPrintSizeId(nextId)
+
+        trackEvent('change_print_size', { id: nextId })
 
         const preset = PRINT_SIZE_PRESETS.find((p) => p.id === nextId)
         if (!preset) {
