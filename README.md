@@ -19,9 +19,12 @@ Everything runs client-side in your browser.
 - Built-in paper and layout presets (single, multi-photo, contact sheet, passport/ID)
 - Manual photo controls (fit/fill, rotate, optional manual position nudges)
 - User-controlled copies per page (custom rows/columns)
-- Print settings profiles saved locally
+- Custom presets saved locally
+- Zoom in/out on the preview canvas
 - Multi-language UI (English + Spanish LATAM)
 - Print-friendly output with browser `window.print()`
+- PWA — works offline with automatic updates
+- Custom event tracking (Umami)
 
 ## Tech Stack
 
@@ -56,6 +59,21 @@ bun run build
 bun run lint
 ```
 
+### 5) Check translations
+
+```bash
+bun run scripts/check-translations.ts
+```
+
+## Environment variables
+
+| Variable | Description |
+|---|---|
+| `VITE_UMAMI_URL` | Umami analytics script URL (optional) |
+| `VITE_UMAMI_WEBSITE_ID` | Umami website ID (optional) |
+
+Create a `.env` file in the project root to enable analytics tracking.
+
 ## Docker
 
 ### Development image
@@ -87,6 +105,10 @@ docker run --rm -p 8080:8080 photo-print:prod
 ```
 
 Then open http://localhost:8080.
+
+## PWA
+
+The app is a Progressive Web App. It registers a service worker on the first visit that precaches all built assets for offline use. Updates are applied automatically when detected — the page reloads to activate the latest version.
 
 ## Print note
 
