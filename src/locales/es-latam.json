@@ -9,6 +9,8 @@
     "print": "Imprimir",
     "settings": "Configuración",
     "theme": "Tema",
+    "switchToLight": "Cambiar a modo claro",
+    "switchToDark": "Cambiar a modo oscuro",
     "themeToggle": {
       "switchToDark": "Modo oscuro",
       "switchToLight": "Modo claro"
@@ -25,7 +27,14 @@
     "import": "Importar fotos",
     "noPhotos": "Aún no hay fotos seleccionadas.",
     "include": "Incluir",
-    "remove": "Eliminar"
+    "remove": "Eliminar",
+    "photo": "foto",
+    "photos": "fotos",
+    "dropHint": "Arrastra fotos aquí o haz clic para explorar",
+    "addMore": "Agregar más",
+    "processing": "Procesando fotos...",
+    "confirmRemoveTitle": "Eliminar foto",
+    "confirmRemoveDescription": "Esta acción no se puede deshacer."
   },
   "preview": {
     "title": "Vista previa",
@@ -37,6 +46,8 @@
     "empty": "Vacío",
     "tip": "Tip: en el diálogo de impresión del navegador, desactiva opciones de escala como “Ajustar a la página” para mantener dimensiones físicas exactas.",
     "overflow": "Desbordamiento de diseño: el tamaño y espaciado actuales exceden el área imprimible.",
+    "overflowLabel": "Desbordamiento",
+    "qualityLabel": "Calidad",
     "lowQualityRisk": "Riesgo de baja calidad: {{name}} ~{{ppi}} PPI con el tamaño de impresión actual."
   },
   "settings": {
@@ -66,8 +77,7 @@
       "layout": "Diseño y copias",
       "sizeAndSpacing": "Tamaño y espaciado",
       "guidesAndAlignment": "Guías y alineación",
-      "selectedPhoto": "Foto seleccionada",
-      "profiles": "Perfiles"
+      "selectedPhoto": "Foto seleccionada"
     },
     "alignment": {
       "top-left": "Arriba izquierda",
@@ -81,6 +91,23 @@
       "bottom-right": "Abajo derecha"
     },
     "selectedPhotoControls": "Controles de la foto seleccionada",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "simple": "Simple",
+    "advanced": "Avanzado",
+    "fillHelp": "Rellenar: la foto ocupa toda la celda (puede recortar bordes)",
+    "fitHelp": "Ajustar: la foto cabe dentro de la celda (pueden quedar bordes)",
+    "printSize": "Tamaño de impresión",
+    "uploadFirst": "Sube fotos para comenzar",
+    "selectedPhoto": "Foto seleccionada",
+    "printReview": "Revisión de impresión",
+    "photos": "Fotos",
+    "pages": "Páginas",
+    "page": "página",
+    "estimatedQuality": "Calidad estimada",
+    "qualityLow": "(puede verse borroso)",
+    "qualityFair": "(aceptable)",
+    "qualityGood": "(buena)",
     "pickPhoto": "Selecciona una foto del panel izquierdo para editar ajuste y rotación.",
     "rotateMinus": "Rotar -90°",
     "rotatePlus": "Rotar +90°",
@@ -91,24 +118,15 @@
     "moveUp": "Mover arriba (%)",
     "moveRight": "Mover derecha (%)",
     "moveDown": "Mover abajo (%)",
-    "moveLeft": "Mover izquierda (%)"
-  },
-  "profiles": {
-    "title": "Perfiles de configuración de impresión",
+    "savedPresets": "Presets guardados",
     "manage": "Gestionar",
-    "hide": "Ocultar",
-    "saveCurrent": "Guardar configuración actual",
-    "profileNamePlaceholder": "Nombre del perfil",
-    "save": "Guardar",
-    "savedProfiles": "Perfiles guardados",
-    "selectProfile": "Seleccionar perfil",
-    "load": "Cargar",
-    "delete": "Eliminar",
-    "errorInvalidName": "Ingresa un nombre de perfil válido.",
-    "noticeSaved": "Perfil guardado.",
-    "noticeUpdated": "Perfil actualizado.",
-    "noticeLoaded": "Perfil cargado.",
-    "noticeDeleted": "Perfil eliminado."
+    "done": "Listo",
+    "savePreset": "Guardar",
+    "presetNamePlaceholder": "Nombre del preset",
+    "deletePreset": "Eliminar",
+    "confirmDeletePresetTitle": "Eliminar preset",
+    "confirmDeletePresetDescription": "Este preset se eliminará permanentemente.",
+    "moveLeft": "Mover izquierda (%)"
   },
   "presets": {
     "paper": {

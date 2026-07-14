@@ -1,23 +1,32 @@
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { usePrintJobActions, usePrintJobState } from '@/hooks/use-print-job-context'
 import type { GridAlignment } from '@/types/print'
 import {
-    ArrowDown,
-    ArrowLeft,
-    ArrowRight,
-    ArrowUp,
     Circle,
     MoveDownLeft,
     MoveDownRight,
     MoveUpLeft,
     MoveUpRight,
+    ArrowDown,
+    ArrowLeft,
+    ArrowRight,
+    ArrowUp,
     type LucideIcon
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-const GRID_ALIGNMENT_OPTIONS: Array<{ value: GridAlignment; icon: LucideIcon }> = [
+const SIMPLE_ALIGNMENT_OPTIONS: Array<{ value: GridAlignment; icon: LucideIcon }> = [
+    { value: 'top-left', icon: MoveUpLeft },
+    { value: 'top-right', icon: MoveUpRight },
+    { value: 'center', icon: Circle },
+    { value: 'bottom-left', icon: MoveDownLeft },
+    { value: 'bottom-right', icon: MoveDownRight }
+]
+
+const FULL_ALIGNMENT_OPTIONS: Array<{ value: GridAlignment; icon: LucideIcon }> = [
     { value: 'top-left', icon: MoveUpLeft },
     { value: 'top-center', icon: ArrowUp },
     { value: 'top-right', icon: MoveUpRight },
@@ -33,6 +42,9 @@ export function PrintSettingsGuidesAlignmentCategory() {
     const { t } = useTranslation()
     const state = usePrintJobState()
     const actions = usePrintJobActions()
+    const [showAdvanced, setShowAdvanced] = useState(false)
+
+    const options = showAdvanced ? FULL_ALIGNMENT_OPTIONS : SIMPLE_ALIGNMENT_OPTIONS
 
     return (
         <div className="space-y-4">
@@ -48,9 +60,21 @@ export function PrintSettingsGuidesAlignmentCategory() {
             </div>
 
             <div className="space-y-2">
-                <Label>{t('settings.gridAlignment')}</Label>
-                <div className="grid grid-cols-3 gap-2">
-                    {GRID_ALIGNMENT_OPTIONS.map((option) => {
+                <div className="flex items-center justify-between">
+                    <Label>{t('settings.gridAlignment')}</Label>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowAdvanced((v) => !v)}
+                    >
+                        {showAdvanced
+                            ? t('settings.simple') || 'Simple'
+                            : t('settings.advanced') || 'Advanced'}
+                    </Button>
+                </div>
+                <div className={`gap-2 ${showAdvanced ? 'grid grid-cols-3' : 'flex flex-wrap'}`}>
+                    {options.map((option) => {
                         const Icon = option.icon
                         const isActive = option.value === state.gridAlignment
 

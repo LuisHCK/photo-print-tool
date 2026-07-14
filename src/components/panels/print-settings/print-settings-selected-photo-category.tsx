@@ -23,7 +23,7 @@ export function PrintSettingsSelectedPhotoCategory() {
 
     return (
         <div className="space-y-4">
-            <div className="text-muted-foreground truncate text-xs">{state.activePhoto.name}</div>
+            <div className="text-muted-foreground break-all text-xs">{state.activePhoto.name}</div>
             <div className="grid grid-cols-2 gap-2">
                 <Button
                     type="button"
@@ -40,20 +40,29 @@ export function PrintSettingsSelectedPhotoCategory() {
                     {t('settings.rotatePlus')}
                 </Button>
             </div>
-            <Select
-                value={state.activePhoto.fitMode}
-                onValueChange={(nextValue) =>
-                    actions.updateActivePhotoFitMode(nextValue as 'fill' | 'fit')
-                }
-            >
-                <SelectTrigger className="w-full">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="fill">{t('settings.fill')}</SelectItem>
-                    <SelectItem value="fit">{t('settings.fit')}</SelectItem>
-                </SelectContent>
-            </Select>
+            <div className="space-y-1">
+                <Select
+                    value={state.activePhoto.fitMode}
+                    onValueChange={(nextValue) =>
+                        actions.updateActivePhotoFitMode(nextValue as 'fill' | 'fit')
+                    }
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="fill">{t('settings.fill')}</SelectItem>
+                        <SelectItem value="fit">{t('settings.fit')}</SelectItem>
+                    </SelectContent>
+                </Select>
+                <p className="text-muted-foreground text-xs">
+                    {state.activePhoto.fitMode === 'fill'
+                        ? t('settings.fillHelp') ||
+                          'Fill: photo fills the entire cell (may crop edges)'
+                        : t('settings.fitHelp') ||
+                          'Fit: photo fits inside the cell (may leave borders)'}
+                </p>
+            </div>
             <div className="space-y-1">
                 <Label className="text-xs">{t('settings.photoCopies')}</Label>
                 <Input

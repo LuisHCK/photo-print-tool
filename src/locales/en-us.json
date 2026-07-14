@@ -9,6 +9,8 @@
     "print": "Print",
     "settings": "Settings",
     "theme": "Theme",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
     "themeToggle": {
       "switchToDark": "Dark mode",
       "switchToLight": "Light mode"
@@ -25,7 +27,14 @@
     "import": "Import photos",
     "noPhotos": "No photos selected yet.",
     "include": "Include",
-    "remove": "Remove"
+    "remove": "Remove",
+    "photo": "photo",
+    "photos": "photos",
+    "dropHint": "Drop photos here or click to browse",
+    "addMore": "Add more",
+    "processing": "Processing photos...",
+    "confirmRemoveTitle": "Remove photo",
+    "confirmRemoveDescription": "This action cannot be undone."
   },
   "preview": {
     "title": "Preview",
@@ -37,6 +46,8 @@
     "empty": "Empty",
     "tip": "Tip: in the browser print dialog, disable scale options like “Fit to page” to keep exact physical dimensions.",
     "overflow": "Layout overflow: current size and spacing exceed printable area.",
+    "overflowLabel": "Overflow",
+    "qualityLabel": "Quality",
     "lowQualityRisk": "Low quality risk: {{name}} ~{{ppi}} PPI at current print size."
   },
   "settings": {
@@ -66,8 +77,7 @@
       "layout": "Layout & copies",
       "sizeAndSpacing": "Size & spacing",
       "guidesAndAlignment": "Guides & alignment",
-      "selectedPhoto": "Selected photo",
-      "profiles": "Profiles"
+      "selectedPhoto": "Selected photo"
     },
     "alignment": {
       "top-left": "Top left",
@@ -81,6 +91,23 @@
       "bottom-right": "Bottom right"
     },
     "selectedPhotoControls": "Selected photo controls",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "simple": "Simple",
+    "advanced": "Advanced",
+    "fillHelp": "Fill: photo fills the entire cell (may crop edges)",
+    "fitHelp": "Fit: photo fits inside the cell (may leave borders)",
+    "printSize": "Print size",
+    "uploadFirst": "Upload photos to get started",
+    "selectedPhoto": "Selected Photo",
+    "printReview": "Print review",
+    "photos": "Photos",
+    "pages": "Pages",
+    "page": "page",
+    "estimatedQuality": "Estimated quality",
+    "qualityLow": "(may appear blurry)",
+    "qualityFair": "(acceptable)",
+    "qualityGood": "(good)",
     "pickPhoto": "Pick a photo from the left panel to edit fit and rotation.",
     "rotateMinus": "Rotate -90°",
     "rotatePlus": "Rotate +90°",
@@ -91,24 +118,15 @@
     "moveUp": "Move Up (%)",
     "moveRight": "Move Right (%)",
     "moveDown": "Move Down (%)",
-    "moveLeft": "Move Left (%)"
-  },
-  "profiles": {
-    "title": "Print setting profiles",
+    "savedPresets": "Saved presets",
     "manage": "Manage",
-    "hide": "Hide",
-    "saveCurrent": "Save current setup",
-    "profileNamePlaceholder": "Profile name",
-    "save": "Save",
-    "savedProfiles": "Saved profiles",
-    "selectProfile": "Select profile",
-    "load": "Load",
-    "delete": "Delete",
-    "errorInvalidName": "Enter a valid profile name.",
-    "noticeSaved": "Profile saved.",
-    "noticeUpdated": "Profile updated.",
-    "noticeLoaded": "Profile loaded.",
-    "noticeDeleted": "Profile deleted."
+    "done": "Done",
+    "savePreset": "Save",
+    "presetNamePlaceholder": "Preset name",
+    "deletePreset": "Delete",
+    "confirmDeletePresetTitle": "Delete preset",
+    "confirmDeletePresetDescription": "This preset will be permanently removed.",
+    "moveLeft": "Move Left (%)"
   },
   "presets": {
     "paper": {

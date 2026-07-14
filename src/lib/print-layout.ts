@@ -103,6 +103,52 @@ export function getGridOriginMm(
     }
 }
 
+export function computeOptimalGrid(
+    paperWidthMm: number,
+    paperHeightMm: number,
+    printWidthMm: number,
+    printHeightMm: number,
+    marginMm: number,
+    horizontalGapMm: number,
+    verticalGapMm: number,
+    photoCount: number
+) {
+    const availableWidthMm = Math.max(paperWidthMm - marginMm * 2, 0)
+    const availableHeightMm = Math.max(paperHeightMm - marginMm * 2, 0)
+
+    function tryOrientation(pw: number, ph: number) {
+        const cols = Math.max(1, Math.floor((availableWidthMm + horizontalGapMm) / (pw + horizontalGapMm)))
+        const rows = Math.max(1, Math.floor((availableHeightMm + verticalGapMm) / (ph + verticalGapMm)))
+        const perPage = cols * rows
+        return { cols, rows, perPage, totalPages: Math.ceil(photoCount / perPage) }
+    }
+
+    const normal = tryOrientation(printWidthMm, printHeightMm)
+    const rotated = tryOrientation(printHeightMm, printWidthMm)
+
+    const best = rotated.perPage > normal.perPage ? rotated : normal
+
+    const usedWidthMm = best.cols * printWidthMm + (best.cols - 1) * horizontalGapMm
+    const usedHeightMm = best.rows * printHeightMm + (best.rows - 1) * verticalGapMm
+
+    const optimalMarginMm = Math.min(
+        marginMm,
+        Math.max(0, (paperWidthMm - usedWidthMm) / 2),
+        Math.max(0, (paperHeightMm - usedHeightMm) / 2)
+    )
+
+    return {
+        cols: best.cols,
+        rows: best.rows,
+        photosPerPage: best.perPage,
+        totalPages: best.totalPages,
+        fitsAllOnOnePage: best.totalPages <= 1,
+        usedWidthMm,
+        usedHeightMm,
+        optimalMarginMm
+    }
+}
+
 export function getPhotoObjectPosition(photo: PhotoItem) {
     if (!photo.manualPositionEnabled) {
         return '50% 50%'

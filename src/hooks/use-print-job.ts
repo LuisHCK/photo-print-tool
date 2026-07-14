@@ -1,9 +1,11 @@
 import { useMemo, useState, type ChangeEvent, type Dispatch, type SetStateAction } from 'react'
 import { LAYOUT_PRESETS } from '@/lib/layout-presets'
 import { PAPER_PRESETS } from '@/lib/paper-presets'
+import { PRINT_SIZE_PRESETS, guessPrintSizeFromPhoto } from '@/lib/print-sizes'
 import {
     buildPageAssignments,
     calcEffectivePpi,
+    computeOptimalGrid,
     getPageSizeMm,
     getPreviewScale
 } from '@/lib/print-layout'
@@ -17,14 +19,18 @@ import type {
     PageAssignment,
     PaperPreset,
     PaperPresetId,
-    PrintSettingsProfile,
+    CustomPreset,
     PrintSettingsSnapshot,
+    PrintSizeId,
     PhotoItem,
+    SettingsSectionId,
     Unit
 } from '@/types/print'
 
-const PRINT_SETTINGS_PROFILES_KEY = 'photo-print.settings-profiles.v1'
-const DEFAULT_GRID_ALIGNMENT: GridAlignment = 'top-left'
+const CUSTOM_PRESETS_KEY = 'photo-print.custom-presets.v1'
+const OPEN_SECTIONS_KEY = 'photo-print.open-sections.v1'
+const DEFAULT_PRINT_SIZE_ID: PrintSizeId = '4x6'
+const DEFAULT_GRID_ALIGNMENT: GridAlignment = 'center'
 const GRID_ALIGNMENTS: GridAlignment[] = [
     'top-left',
     'top-center',
@@ -37,19 +43,19 @@ const GRID_ALIGNMENTS: GridAlignment[] = [
     'bottom-right'
 ]
 
-function safeParseProfiles(raw: string): PrintSettingsProfile[] {
+function safeParsePresets(raw: string): CustomPreset[] {
     try {
         const parsed = JSON.parse(raw)
         if (!Array.isArray(parsed)) {
             return []
         }
 
-        return parsed.filter((entry): entry is PrintSettingsProfile => {
+        return parsed.filter((entry): entry is CustomPreset => {
             if (!entry || typeof entry !== 'object') {
                 return false
             }
 
-            const candidate = entry as Partial<PrintSettingsProfile>
+            const candidate = entry as Partial<CustomPreset>
             return (
                 typeof candidate.id === 'string' &&
                 typeof candidate.name === 'string' &&
@@ -64,25 +70,64 @@ function safeParseProfiles(raw: string): PrintSettingsProfile[] {
     }
 }
 
-function loadSettingsProfilesFromStorage(): PrintSettingsProfile[] {
+function loadOpenSections(): Record<SettingsSectionId, boolean> {
     if (typeof window === 'undefined') {
-        return []
+        return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
     }
 
-    const raw = window.localStorage.getItem(PRINT_SETTINGS_PROFILES_KEY)
-    if (!raw) {
-        return []
-    }
+    try {
+        const raw = window.localStorage.getItem(OPEN_SECTIONS_KEY)
+        if (!raw) {
+            return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
+        }
 
-    return safeParseProfiles(raw)
+        const parsed = JSON.parse(raw)
+        if (!parsed || typeof parsed !== 'object') {
+            return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
+        }
+
+        return {
+            layout: parsed.layout === true,
+            sizeAndSpacing: parsed.sizeAndSpacing === true,
+            guidesAndAlignment: parsed.guidesAndAlignment === true,
+            selectedPhoto: parsed.selectedPhoto === true
+        }
+    } catch {
+        return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
+    }
 }
 
-function saveSettingsProfilesToStorage(profiles: PrintSettingsProfile[]) {
+function persistOpenSections(sections: Record<SettingsSectionId, boolean>) {
     if (typeof window === 'undefined') {
         return
     }
 
-    window.localStorage.setItem(PRINT_SETTINGS_PROFILES_KEY, JSON.stringify(profiles))
+    try {
+        window.localStorage.setItem(OPEN_SECTIONS_KEY, JSON.stringify(sections))
+    } catch {
+        // localStorage may be full or unavailable
+    }
+}
+
+function loadCustomPresetsFromStorage(): CustomPreset[] {
+    if (typeof window === 'undefined') {
+        return []
+    }
+
+    const raw = window.localStorage.getItem(CUSTOM_PRESETS_KEY)
+    if (!raw) {
+        return []
+    }
+
+    return safeParsePresets(raw)
+}
+
+function saveCustomPresetsToStorage(presets: CustomPreset[]) {
+    if (typeof window === 'undefined') {
+        return
+    }
+
+    window.localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(presets))
 }
 
 function formatNumericInput(valueMm: number, unit: Unit) {
@@ -156,7 +201,10 @@ export interface PrintJobState {
     verticalGapInput: NumericInputController
     paperPresets: PaperPreset[]
     layoutPresets: LayoutPreset[]
-    settingsProfiles: PrintSettingsProfile[]
+    customPresets: CustomPreset[]
+    printSizeId: PrintSizeId
+    isUploading: boolean
+    openSections: Record<SettingsSectionId, boolean>
 }
 
 export interface PrintJobActions {
@@ -182,9 +230,12 @@ export interface PrintJobActions {
         direction: 'up' | 'right' | 'down' | 'left',
         value: number
     ) => void
-    saveSettingsProfile: (name: string) => { id: string; mode: 'created' | 'updated' } | null
-    loadSettingsProfile: (profileId: string) => void
-    deleteSettingsProfile: (profileId: string) => void
+    saveCustomPreset: (name: string) => { id: string; mode: 'created' | 'updated' } | null
+    loadCustomPreset: (presetId: string) => void
+    deleteCustomPreset: (presetId: string) => void
+    setPrintSizeId: (id: PrintSizeId) => void
+    setSectionOpen: (section: SettingsSectionId, open: boolean) => void
+    recomputeLayout: () => void
 }
 
 export function usePrintJob(): {
@@ -219,9 +270,23 @@ export function usePrintJob(): {
     const [verticalGapInput, setVerticalGapInput] = useState<string>(() =>
         formatNumericInput(4, 'cm')
     )
-    const [settingsProfiles, setSettingsProfiles] = useState<PrintSettingsProfile[]>(() =>
-        loadSettingsProfilesFromStorage()
+    const [customPresets, setCustomPresets] = useState<CustomPreset[]>(() =>
+        loadCustomPresetsFromStorage()
     )
+
+    const [printSizeId, setPrintSizeId] = useState<PrintSizeId>(DEFAULT_PRINT_SIZE_ID)
+    const [isUploading, setIsUploading] = useState(false)
+    const [openSections, setOpenSectionsState] = useState<Record<SettingsSectionId, boolean>>(() =>
+        loadOpenSections()
+    )
+
+    function setSectionOpen(section: SettingsSectionId, open: boolean) {
+        setOpenSectionsState((prev) => {
+            const next = { ...prev, [section]: open }
+            persistOpenSections(next)
+            return next
+        })
+    }
 
     const paperPresets = PAPER_PRESETS
     const layoutPresets = LAYOUT_PRESETS
@@ -328,6 +393,8 @@ export function usePrintJob(): {
             return
         }
 
+        setIsUploading(true)
+
         const loadedPhotos = await Promise.all(
             files.map(async (file) => {
                 const url = URL.createObjectURL(file)
@@ -336,10 +403,42 @@ export function usePrintJob(): {
         )
 
         setPhotos((previous) => [...previous, ...loadedPhotos])
+        setIsUploading(false)
 
         if (!activePhotoId) {
             setActivePhotoId(loadedPhotos[0]?.id ?? null)
         }
+
+        const firstPhoto = loadedPhotos[0]
+        if (firstPhoto) {
+            const guessed = guessPrintSizeFromPhoto(firstPhoto.widthPx, firstPhoto.heightPx)
+            setPrintSizeId(guessed.id)
+
+            const selectedPaper = paperPresets.find((p) => p.id === paperId) ?? paperPresets[0]
+            const pageSize = getPageSizeMm(selectedPaper, orientation)
+            const grid = computeOptimalGrid(
+                pageSize.widthMm,
+                pageSize.heightMm,
+                guessed.widthMm,
+                guessed.heightMm,
+                marginMm,
+                horizontalGapMm,
+                verticalGapMm,
+                loadedPhotos.length
+            )
+
+            setCellWidthMm(guessed.widthMm)
+            setCellHeightMm(guessed.heightMm)
+            setLayoutColumns(grid.cols)
+            setLayoutRows(grid.rows)
+            setMaxCopiesPerPage(grid.photosPerPage)
+            setCellWidthInput(formatNumericInput(guessed.widthMm, unit))
+            setCellHeightInput(formatNumericInput(guessed.heightMm, unit))
+        }
+
+        setSectionOpen('layout', true)
+        setSectionOpen('sizeAndSpacing', false)
+        setSectionOpen('selectedPhoto', false)
 
         event.target.value = ''
     }
@@ -588,7 +687,7 @@ export function usePrintJob(): {
         setPageIndex(0)
     }
 
-    function saveSettingsProfile(
+    function saveCustomPreset(
         name: string
     ): { id: string; mode: 'created' | 'updated' } | null {
         const trimmedName = name.trim()
@@ -597,31 +696,31 @@ export function usePrintJob(): {
         }
 
         const now = new Date().toISOString()
-        const existingProfile = settingsProfiles.find(
-            (profile) => profile.name.toLowerCase() === trimmedName.toLowerCase()
+        const existingPreset = customPresets.find(
+            (preset) => preset.name.toLowerCase() === trimmedName.toLowerCase()
         )
 
-        if (existingProfile) {
-            const updatedProfile: PrintSettingsProfile = {
-                ...existingProfile,
+        if (existingPreset) {
+            const updatedPreset: CustomPreset = {
+                ...existingPreset,
                 name: trimmedName,
                 updatedAt: now,
                 settings: buildCurrentSettingsSnapshot()
             }
 
-            setSettingsProfiles((previous) => {
-                const next = previous.map((profile) =>
-                    profile.id === existingProfile.id ? updatedProfile : profile
+            setCustomPresets((previous) => {
+                const next = previous.map((preset) =>
+                    preset.id === existingPreset.id ? updatedPreset : preset
                 )
-                saveSettingsProfilesToStorage(next)
+                saveCustomPresetsToStorage(next)
                 return next
             })
 
-            return { id: existingProfile.id, mode: 'updated' }
+            return { id: existingPreset.id, mode: 'updated' }
         }
 
         const id = crypto.randomUUID()
-        const nextProfile: PrintSettingsProfile = {
+        const nextPreset: CustomPreset = {
             id,
             name: trimmedName,
             createdAt: now,
@@ -629,30 +728,85 @@ export function usePrintJob(): {
             settings: buildCurrentSettingsSnapshot()
         }
 
-        setSettingsProfiles((previous) => {
-            const next = [...previous, nextProfile]
-            saveSettingsProfilesToStorage(next)
+        setCustomPresets((previous) => {
+            const next = [...previous, nextPreset]
+            saveCustomPresetsToStorage(next)
             return next
         })
 
         return { id, mode: 'created' }
     }
 
-    function loadSettingsProfile(profileId: string) {
-        const profile = settingsProfiles.find((entry) => entry.id === profileId)
-        if (!profile) {
+    function loadCustomPreset(presetId: string) {
+        const preset = customPresets.find((entry) => entry.id === presetId)
+        if (!preset) {
             return
         }
 
-        applySettingsSnapshot(profile.settings)
+        applySettingsSnapshot(preset.settings)
     }
 
-    function deleteSettingsProfile(profileId: string) {
-        setSettingsProfiles((previous) => {
-            const next = previous.filter((profile) => profile.id !== profileId)
-            saveSettingsProfilesToStorage(next)
+    function deleteCustomPreset(presetId: string) {
+        setCustomPresets((previous) => {
+            const next = previous.filter((preset) => preset.id !== presetId)
+            saveCustomPresetsToStorage(next)
             return next
         })
+    }
+
+    function handlePrintSizeChange(nextId: PrintSizeId) {
+        setPrintSizeId(nextId)
+
+        const preset = PRINT_SIZE_PRESETS.find((p) => p.id === nextId)
+        if (!preset) {
+            return
+        }
+
+        const newWidthMm = preset.widthMm
+        const newHeightMm = preset.heightMm
+
+        setCellWidthMm(newWidthMm)
+        setCellHeightMm(newHeightMm)
+        setCellWidthInput(formatNumericInput(newWidthMm, unit))
+        setCellHeightInput(formatNumericInput(newHeightMm, unit))
+
+        const currentPaper = paperPresets.find((p) => p.id === paperId) ?? paperPresets[0]
+        const pageSize = getPageSizeMm(currentPaper, orientation)
+        const grid = computeOptimalGrid(
+            pageSize.widthMm,
+            pageSize.heightMm,
+            newWidthMm,
+            newHeightMm,
+            marginMm,
+            horizontalGapMm,
+            verticalGapMm,
+            selectedPhotos.length
+        )
+
+        setLayoutColumns(grid.cols)
+        setLayoutRows(grid.rows)
+        setMaxCopiesPerPage(grid.photosPerPage)
+        setPageIndex(0)
+    }
+
+    function recomputeLayout() {
+        const currentPaper = paperPresets.find((p) => p.id === paperId) ?? paperPresets[0]
+        const pageSize = getPageSizeMm(currentPaper, orientation)
+        const grid = computeOptimalGrid(
+            pageSize.widthMm,
+            pageSize.heightMm,
+            cellWidthMm,
+            cellHeightMm,
+            marginMm,
+            horizontalGapMm,
+            verticalGapMm,
+            selectedPhotos.length
+        )
+
+        setLayoutColumns(grid.cols)
+        setLayoutRows(grid.rows)
+        setMaxCopiesPerPage(grid.photosPerPage)
+        setPageIndex(0)
     }
 
     const state: PrintJobState = {
@@ -716,7 +870,10 @@ export function usePrintJob(): {
         ),
         paperPresets,
         layoutPresets,
-        settingsProfiles
+        customPresets,
+        printSizeId,
+        isUploading,
+        openSections
     }
 
     const actions: PrintJobActions = {
@@ -739,9 +896,12 @@ export function usePrintJob(): {
         updateActivePhotoFitMode,
         updateActivePhotoManualPositionEnabled,
         updateActivePhotoNudge,
-        saveSettingsProfile,
-        loadSettingsProfile,
-        deleteSettingsProfile
+        saveCustomPreset,
+        loadCustomPreset,
+        deleteCustomPreset,
+        setPrintSizeId: handlePrintSizeChange,
+        setSectionOpen,
+        recomputeLayout
     }
 
     return { state, actions }

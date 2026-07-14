@@ -75,20 +75,29 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
                     </PopoverTrigger>
                     <PopoverContent align="end" className="w-84 space-y-4">
                         <div className="flex justify-between items-center space-y-2">
-                            <Label className='mb-0'>{t('app.theme')}</Label>
-                            <Button variant="outline" onClick={toggleTheme} size="sm">
+                            <Label>{t('app.theme')}</Label>
+                            <Button
+                                variant="outline"
+                                onClick={toggleTheme}
+                                size="sm"
+                                aria-label={
+                                    theme === 'dark'
+                                        ? t('app.switchToLight') || 'Switch to light mode'
+                                        : t('app.switchToDark') || 'Switch to dark mode'
+                                }
+                            >
                                 {theme === 'dark'
                                     ? <SunIcon className="size-4" />
                                     : <MoonIcon className="size-4" />}
                             </Button>
                         </div>
-                        <div className="flex justify-between items-center space-y-2 gap-4">
-                            <Label className='mb-0'>{t('app.language')}</Label>
+                        <div className="flex items-center justify-between gap-4">
+                            <Label>{t('app.language')}</Label>
                             <Select
                                 value={currentLanguage}
-                                onValueChange={(next) =>
-                                    i18n.changeLanguage(next as SupportedLanguage)
-                                }
+                                onValueChange={(next) => {
+                                    i18n.changeLanguage(next as SupportedLanguage).catch(() => {})
+                                }}
                             >
                                 <SelectTrigger className="w-auto">
                                     <SelectValue />
@@ -104,7 +113,9 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
                         </div>
                     </PopoverContent>
                 </Popover>
-                <Button onClick={onPrint}>{t('app.print')}</Button>
+                <Button onClick={onPrint} aria-label={t('app.print')}>
+                    {t('app.print')}
+                </Button>
             </div>
         </header>
     )
