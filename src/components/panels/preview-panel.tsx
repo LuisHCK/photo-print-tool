@@ -1,16 +1,33 @@
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { usePrintJobActions, usePrintJobState } from '@/hooks/use-print-job-context'
 import { getGridOriginMm, getPhotoObjectPosition } from '@/lib/print-layout'
-import { FrameIcon } from 'lucide-react'
+import { FrameIcon, MinusIcon, PlusIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+
+const ZOOM_STEP = 0.25
+const ZOOM_MIN = 0.25
+const ZOOM_MAX = 3
 
 export function PreviewPanel() {
     const { t } = useTranslation()
     const state = usePrintJobState()
     const actions = usePrintJobActions()
+    const [zoom, setZoom] = useState(1)
 
     const hasPhotos = state.photos.length > 0
+
+    function zoomIn() {
+        setZoom((prev) => Math.min(prev + ZOOM_STEP, ZOOM_MAX))
+    }
+
+    function zoomOut() {
+        setZoom((prev) => Math.max(prev - ZOOM_STEP, ZOOM_MIN))
+    }
+
+    const effectiveScale = state.previewScale * zoom
+    const zoomPct = Math.round(zoom * 100)
 
     if (!hasPhotos) {
         return (
@@ -90,15 +107,26 @@ export function PreviewPanel() {
                             {t('preview.next')}
                         </Button>
                     </div>
+                    <div className="flex items-center gap-1">
+                        <Button variant="outline" size="sm" onClick={zoomOut} disabled={zoom <= ZOOM_MIN} aria-label="Zoom out">
+                            <MinusIcon className="size-3.5" />
+                        </Button>
+                        <span className="text-muted-foreground min-w-[3ch] text-center text-xs tabular-nums">
+                            {zoomPct}%
+                        </span>
+                        <Button variant="outline" size="sm" onClick={zoomIn} disabled={zoom >= ZOOM_MAX} aria-label="Zoom in">
+                            <PlusIcon className="size-3.5" />
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="xl:flex-1 xl:min-h-0 xl:overflow-y-auto space-y-3">
-                    <div className="flex justify-center rounded-md bg-muted/30 p-4">
+                    <div className="flex justify-center overflow-x-auto rounded-md bg-muted/30 p-4">
                         <div
-                            className="relative bg-white shadow-sm"
+                            className="relative shrink-0 bg-white shadow-sm"
                             style={{
-                                width: `${state.pageSize.widthMm * state.previewScale}px`,
-                                height: `${state.pageSize.heightMm * state.previewScale}px`
+                                width: `${state.pageSize.widthMm * effectiveScale}px`,
+                                height: `${state.pageSize.heightMm * effectiveScale}px`
                             }}
                         >
                             {state.currentPage?.slots.map((slot) => {
@@ -143,10 +171,10 @@ export function PreviewPanel() {
                                             }
                                         }}
                                         style={{
-                                            left: `${offsetX * state.previewScale}px`,
-                                            top: `${offsetY * state.previewScale}px`,
-                                            width: `${state.cellWidthMm * state.previewScale}px`,
-                                            height: `${state.cellHeightMm * state.previewScale}px`
+                                            left: `${offsetX * effectiveScale}px`,
+                                            top: `${offsetY * effectiveScale}px`,
+                                            width: `${state.cellWidthMm * effectiveScale}px`,
+                                            height: `${state.cellHeightMm * effectiveScale}px`
                                         }}
                                     >
                                         {state.showCropGuides ? (
