@@ -49,22 +49,10 @@ export function PrintPages() {
                                     overflow: 'visible'
                                 }}
                             >
-                                {state.showCropGuides ? (
-                                    <>
-                                        <div style={{ position: 'absolute', left: 0, top: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
-                                        <div style={{ position: 'absolute', left: '-3mm', top: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
-                                        <div style={{ position: 'absolute', right: 0, top: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
-                                        <div style={{ position: 'absolute', right: '-3mm', top: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
-                                        <div style={{ position: 'absolute', left: 0, bottom: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
-                                        <div style={{ position: 'absolute', left: '-3mm', bottom: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
-                                        <div style={{ position: 'absolute', right: 0, bottom: '-3mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
-                                        <div style={{ position: 'absolute', right: '-3mm', bottom: 0, width: '4mm', height: '0.2mm', backgroundColor: '#737373' }} />
-                                    </>
-                                ) : null}
                                 <div
                                     style={{
                                         position: 'relative',
-                                        zIndex: 1,
+                                        zIndex: 0,
                                         width: '100%',
                                         height: '100%',
                                         overflow: 'hidden'
@@ -84,6 +72,33 @@ export function PrintPages() {
                                         }}
                                     />
                                 </div>
+                                {state.showCropGuides ? (
+                                    state.cutGuideStyle === 'crosses' ? (
+                                        <>
+                                            <div style={{ position: 'absolute', zIndex: 1, left: '-1mm', top: '-5mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, top: '-1mm', left: '-5mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, right: '-1mm', top: '-5mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, top: '-1mm', right: '-5mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, left: '-1mm', bottom: '-5mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, bottom: '-1mm', left: '-5mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, right: '-1mm', bottom: '-5mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, bottom: '-1mm', right: '-5mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
+                                        </>
+                                    ) : (
+                                        <div
+                                            style={{
+                                                position: 'absolute',
+                                                zIndex: 1,
+                                                top: '-1mm',
+                                                right: '-1mm',
+                                                bottom: '-1mm',
+                                                left: '-1mm',
+                                                border: '0.2mm solid #737373',
+                                                borderStyle: state.cutGuideStyle === 'dotted' ? 'dotted' : 'dashed'
+                                            }}
+                                        />
+                                    )
+                                ) : null}
                             </div>
                         )
                     })}

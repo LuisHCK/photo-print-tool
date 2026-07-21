@@ -11,6 +11,7 @@ import {
 } from '@/lib/print-layout'
 import { formatValue, parseInputToMm } from '@/lib/units'
 import type {
+    CutGuideStyle,
     FitMode,
     GridAlignment,
     LayoutPreset,
@@ -30,8 +31,9 @@ import { trackEvent } from '@/lib/analytics'
 
 const CUSTOM_PRESETS_KEY = 'photo-print.custom-presets.v1'
 const OPEN_SECTIONS_KEY = 'photo-print.open-sections.v1'
+const GUIDE_STYLE_KEY = 'photo-print.guide-style.v1'
 const DEFAULT_PRINT_SIZE_ID: PrintSizeId = '4x6'
-const DEFAULT_GRID_ALIGNMENT: GridAlignment = 'center'
+const DEFAULT_GRID_ALIGNMENT: GridAlignment = 'top-left'
 const GRID_ALIGNMENTS: GridAlignment[] = [
     'top-left',
     'top-center',
@@ -95,6 +97,35 @@ function loadOpenSections(): Record<SettingsSectionId, boolean> {
         }
     } catch {
         return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
+    }
+}
+
+function loadCutGuideStyle(): CutGuideStyle {
+    if (typeof window === 'undefined') {
+        return 'crosses'
+    }
+
+    try {
+        const raw = window.localStorage.getItem(GUIDE_STYLE_KEY)
+        if (raw === 'crosses' || raw === 'dotted' || raw === 'dashed') {
+            return raw
+        }
+    } catch {
+        // localStorage unavailable
+    }
+
+    return 'crosses'
+}
+
+function persistCutGuideStyle(style: CutGuideStyle) {
+    if (typeof window === 'undefined') {
+        return
+    }
+
+    try {
+        window.localStorage.setItem(GUIDE_STYLE_KEY, style)
+    } catch {
+        // localStorage may be full or unavailable
     }
 }
 
@@ -195,6 +226,7 @@ export interface PrintJobState {
     maxCopiesPerPage: number
     gridAlignment: GridAlignment
     showCropGuides: boolean
+    cutGuideStyle: CutGuideStyle
     widthInput: NumericInputController
     heightInput: NumericInputController
     marginInput: NumericInputController
@@ -216,8 +248,10 @@ export interface PrintJobActions {
     updateLayoutColumns: (nextColumns: number) => void
     updateLayoutRows: (nextRows: number) => void
     setMaxCopiesPerPage: (nextMaxCopies: number) => void
+    setPhotosPerPage: (count: number) => void
     setGridAlignment: (nextAlignment: GridAlignment) => void
     setShowCropGuides: (show: boolean) => void
+    setCutGuideStyle: (style: CutGuideStyle) => void
     updateUnit: (nextUnit: Unit) => void
     setActivePhotoId: (photoId: string | null) => void
     handleFileUpload: (event: ChangeEvent<HTMLInputElement>) => Promise<void>
@@ -259,6 +293,7 @@ export function usePrintJob(): {
     const [maxCopiesPerPage, setMaxCopiesPerPage] = useState<number>(4)
     const [gridAlignment, setGridAlignment] = useState<GridAlignment>(DEFAULT_GRID_ALIGNMENT)
     const [showCropGuides, setShowCropGuides] = useState<boolean>(true)
+    const [cutGuideStyle, setCutGuideStyle] = useState<CutGuideStyle>(() => loadCutGuideStyle())
     const [pageIndex, setPageIndex] = useState(0)
     const [cellWidthInput, setCellWidthInput] = useState<string>(() => formatNumericInput(89, 'cm'))
     const [cellHeightInput, setCellHeightInput] = useState<string>(() =>
@@ -516,6 +551,22 @@ export function usePrintJob(): {
         setPageIndex(0)
     }
 
+    function setPhotosPerPage(count: number) {
+        if (!Number.isInteger(count) || count < 1) {
+            return
+        }
+
+        const pageSize = getPageSizeMm(selectedPaper, orientation)
+        const availableWidthMm = Math.max(pageSize.widthMm - marginMm * 2, 0)
+        const cols = Math.max(1, Math.floor((availableWidthMm + horizontalGapMm) / (cellWidthMm + horizontalGapMm)))
+        const rows = Math.max(1, Math.ceil(count / cols))
+
+        setLayoutColumns(cols)
+        setLayoutRows(rows)
+        setMaxCopiesPerPage(clampCopiesToCapacity(count, cols, rows))
+        setPageIndex(0)
+    }
+
     function updateUnit(nextUnit: Unit) {
         setUnit(nextUnit)
         setCellWidthInput(formatNumericInput(cellWidthMm, nextUnit))
@@ -625,6 +676,7 @@ export function usePrintJob(): {
             horizontalGapMm,
             verticalGapMm,
             showCropGuides,
+            cutGuideStyle,
             gridAlignment
         }
     }
@@ -663,6 +715,10 @@ export function usePrintJob(): {
             : fallbackGapMm
         const nextShowCropGuides =
             typeof snapshot.showCropGuides === 'boolean' ? snapshot.showCropGuides : true
+        const nextCutGuideStyle: CutGuideStyle =
+            snapshot.cutGuideStyle === 'crosses' || snapshot.cutGuideStyle === 'dotted' || snapshot.cutGuideStyle === 'dashed'
+                ? snapshot.cutGuideStyle
+                : 'crosses'
         const nextGridAlignment = GRID_ALIGNMENTS.includes(snapshot.gridAlignment)
             ? snapshot.gridAlignment
             : DEFAULT_GRID_ALIGNMENT
@@ -681,6 +737,7 @@ export function usePrintJob(): {
         setVerticalGapMm(nextVerticalGapMm)
         setGridAlignment(nextGridAlignment)
         setShowCropGuides(nextShowCropGuides)
+        setCutGuideStyle(nextCutGuideStyle)
 
         setCellWidthInput(formatNumericInput(nextWidthMm, snapshot.unit))
         setCellHeightInput(formatNumericInput(nextHeightMm, snapshot.unit))
@@ -848,6 +905,7 @@ export function usePrintJob(): {
         maxCopiesPerPage,
         gridAlignment,
         showCropGuides,
+        cutGuideStyle,
         widthInput: createNumericInputController(
             cellWidthInput,
             setCellWidthInput,
@@ -894,8 +952,13 @@ export function usePrintJob(): {
         updateLayoutColumns,
         updateLayoutRows,
         setMaxCopiesPerPage: updateMaxCopiesPerPage,
+        setPhotosPerPage,
         setGridAlignment,
         setShowCropGuides,
+        setCutGuideStyle: (style: CutGuideStyle) => {
+            setCutGuideStyle(style)
+            persistCutGuideStyle(style)
+        },
         updateUnit,
         setActivePhotoId,
         handleFileUpload,

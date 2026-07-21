@@ -96,7 +96,7 @@ export function PhotosPanel() {
                                             key={photo.id}
                                             className={`flex items-center gap-2 overflow-hidden rounded-md border p-2 transition-colors ${
                                                 photo.id === state.activePhotoId
-                                                    ? 'border-primary/50 bg-muted/40'
+                                                    ? 'border-primary bg-muted'
                                                     : 'border-border'
                                             }`}
                                         >

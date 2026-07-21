@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { usePrintJobActions, usePrintJobState } from '@/hooks/use-print-job-context'
-import type { GridAlignment } from '@/types/print'
+import type { CutGuideStyle, GridAlignment } from '@/types/print'
 import {
     Circle,
     MoveDownLeft,
@@ -56,6 +56,22 @@ export function PrintSettingsGuidesAlignmentCategory() {
                         onCheckedChange={actions.setShowCropGuides}
                     />
                 </div>
+                {state.showCropGuides && (
+                    <div className="flex gap-2">
+                        {(['crosses', 'dotted', 'dashed'] as CutGuideStyle[]).map((style) => (
+                            <Button
+                                key={style}
+                                type="button"
+                                variant={state.cutGuideStyle === style ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => actions.setCutGuideStyle(style)}
+                                className="flex-1"
+                            >
+                                {t(`settings.guideStyle.${style}`)}
+                            </Button>
+                        ))}
+                    </div>
+                )}
                 <div className="text-muted-foreground text-xs">{t('settings.cropGuidesHelp')}</div>
             </div>
 

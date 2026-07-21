@@ -50,6 +50,19 @@ export function PrintSettingsPanel() {
                     </PrintSettingsSection>
 
                     <PrintSettingsSection
+                        title={t('settings.selectedPhoto') || 'Selected Photo'}
+                        open={state.openSections.selectedPhoto}
+                        onToggle={() =>
+                            actions.setSectionOpen(
+                                'selectedPhoto',
+                                !state.openSections.selectedPhoto
+                            )
+                        }
+                    >
+                        <PrintSettingsSelectedPhotoCategory />
+                    </PrintSettingsSection>
+
+                    <PrintSettingsSection
                         title={t('settings.categories.sizeAndSpacing')}
                         open={state.openSections.sizeAndSpacing}
                         onToggle={() =>
@@ -73,19 +86,6 @@ export function PrintSettingsPanel() {
                         }
                     >
                         <PrintSettingsGuidesAlignmentCategory />
-                    </PrintSettingsSection>
-
-                    <PrintSettingsSection
-                        title={t('settings.selectedPhoto') || 'Selected Photo'}
-                        open={state.openSections.selectedPhoto}
-                        onToggle={() =>
-                            actions.setSectionOpen(
-                                'selectedPhoto',
-                                !state.openSections.selectedPhoto
-                            )
-                        }
-                    >
-                        <PrintSettingsSelectedPhotoCategory />
                     </PrintSettingsSection>
 
                 </CardContent>

@@ -4,6 +4,8 @@ export type Orientation = 'portrait' | 'landscape'
 
 export type FitMode = 'fit' | 'fill'
 
+export type CutGuideStyle = 'crosses' | 'dotted' | 'dashed'
+
 export type GridAlignment =
     | 'top-left'
     | 'top-center'
@@ -95,6 +97,7 @@ export interface PrintSettingsSnapshot {
     horizontalGapMm: number
     verticalGapMm: number
     showCropGuides: boolean
+    cutGuideStyle: CutGuideStyle
     gridAlignment: GridAlignment
 }
 

@@ -177,19 +177,7 @@ export function PreviewPanel() {
                                             height: `${state.cellHeightMm * effectiveScale}px`
                                         }}
                                     >
-                                        {state.showCropGuides ? (
-                                            <>
-                                                <div className="pointer-events-none absolute left-0 -top-3 z-0 h-8 w-px bg-neutral-400/70" />
-                                                <div className="pointer-events-none absolute -left-3 top-0 z-0 h-px w-8 bg-neutral-400/70" />
-                                                <div className="pointer-events-none absolute right-0 -top-3 z-0 h-8 w-px bg-neutral-400/70" />
-                                                <div className="pointer-events-none absolute -right-3 top-0 z-0 h-px w-8 bg-neutral-400/70" />
-                                                <div className="pointer-events-none absolute -bottom-3 left-0 z-0 h-8 w-px bg-neutral-400/70" />
-                                                <div className="pointer-events-none absolute bottom-0 -left-3 z-0 h-px w-8 bg-neutral-400/70" />
-                                                <div className="pointer-events-none absolute -bottom-3 right-0 z-0 h-8 w-px bg-neutral-400/70" />
-                                                <div className="pointer-events-none absolute bottom-0 -right-3 z-0 h-px w-8 bg-neutral-400/70" />
-                                            </>
-                                        ) : null}
-                                        <div className="relative z-10 h-full w-full overflow-hidden">
+                                        <div className="relative z-0 h-full w-full overflow-hidden">
                                             {slot.photo ? (
                                                 <img
                                                     src={slot.photo.url}
@@ -213,6 +201,35 @@ export function PreviewPanel() {
                                                 </div>
                                             )}
                                         </div>
+                                        {state.showCropGuides ? (
+                                            state.cutGuideStyle === 'crosses' ? (
+                                                <>
+                                                    <div className="pointer-events-none absolute z-10" style={{ left: '-1px', top: '-5px', width: '1px', height: '4px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ top: '-1px', left: '-5px', height: '1px', width: '4px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ right: '-1px', top: '-5px', width: '1px', height: '4px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ top: '-1px', right: '-5px', height: '1px', width: '4px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ left: '-1px', bottom: '-5px', width: '1px', height: '4px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ bottom: '-1px', left: '-5px', height: '1px', width: '4px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ right: '-1px', bottom: '-5px', width: '1px', height: '4px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ bottom: '-1px', right: '-5px', height: '1px', width: '4px', backgroundColor: '#a3a3a3' }} />
+                                                </>
+                                            ) : (
+                                                <div
+                                                    className="pointer-events-none absolute z-10"
+                                                    style={{
+                                                        top: '-1px',
+                                                        right: '-1px',
+                                                        bottom: '-1px',
+                                                        left: '-1px',
+                                                        border: '1px solid #a3a3a3',
+                                                        borderStyle:
+                                                            state.cutGuideStyle === 'dotted'
+                                                                ? 'dotted'
+                                                                : 'dashed'
+                                                    }}
+                                                />
+                                            )
+                                        ) : null}
                                     </div>
                                 )
                             })}

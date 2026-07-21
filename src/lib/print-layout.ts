@@ -149,6 +149,36 @@ export function computeOptimalGrid(
     }
 }
 
+export function computeGridFromCount(count: number): { columns: number; rows: number } {
+    const n = Math.max(count, 1)
+    if (n === 1) return { columns: 1, rows: 1 }
+
+    let bestCols = 1
+    let bestRows = n
+    let bestDiff = n - 1
+
+    const maxCols = Math.ceil(Math.sqrt(n))
+
+    for (let cols = 1; cols <= maxCols; cols++) {
+        const rows = Math.ceil(n / cols)
+        const diff = Math.abs(cols - rows)
+        const capacity = cols * rows
+
+        if (capacity >= n) {
+            const improvement = diff < bestDiff
+            const sameWithBetterOrientation = diff === bestDiff && rows >= cols && bestRows < bestCols
+
+            if (improvement || sameWithBetterOrientation) {
+                bestCols = cols
+                bestRows = rows
+                bestDiff = diff
+            }
+        }
+    }
+
+    return { columns: bestCols, rows: bestRows }
+}
+
 export function getPhotoObjectPosition(photo: PhotoItem) {
     if (!photo.manualPositionEnabled) {
         return '50% 50%'

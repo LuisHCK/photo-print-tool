@@ -37,6 +37,7 @@ export function PrintSettingsLayoutCategory() {
     const state = usePrintJobState()
     const actions = usePrintJobActions()
     const [showManage, setShowManage] = useState(false)
+    const [showGridSettings, setShowGridSettings] = useState(false)
     const [presetName, setPresetName] = useState('')
     const [presetToDelete, setPresetToDelete] = useState<string | null>(null)
 
@@ -224,35 +225,65 @@ export function PrintSettingsLayoutCategory() {
             </div>
 
             <div className="space-y-2">
-                <Label>{t('settings.copiesPerPage')}</Label>
-                <div className="grid grid-cols-3 gap-3">
-                    <Input
-                        type="number"
-                        min={1}
-                        step="1"
-                        value={state.selectedLayoutColumns}
-                        onChange={(event) => actions.updateLayoutColumns(Number(event.target.value))}
-                    />
-                    <Input
-                        type="number"
-                        min={1}
-                        step="1"
-                        value={state.selectedLayoutRows}
-                        onChange={(event) => actions.updateLayoutRows(Number(event.target.value))}
-                    />
-                    <Input
-                        type="number"
-                        min={1}
-                        max={state.selectedLayoutColumns * state.selectedLayoutRows}
-                        step="1"
-                        value={state.maxCopiesPerPage}
-                        onChange={(event) => actions.setMaxCopiesPerPage(Number(event.target.value))}
-                    />
-                </div>
+                <Label>{t('settings.photosPerPage')}</Label>
+                <Input
+                    type="number"
+                    min={1}
+                    step="1"
+                    value={state.maxCopiesPerPage}
+                    onChange={(event) => actions.setPhotosPerPage(Number(event.target.value))}
+                />
                 <div className="text-muted-foreground text-xs">
-                    {t('settings.columnsRowsMaxCopies')}
+                    {t('settings.photosPerPageHelp')}
                 </div>
             </div>
+
+            <div className="space-y-2">
+                <button
+                    type="button"
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground flex items-center gap-1"
+                    onClick={() => setShowGridSettings(!showGridSettings)}
+                >
+                    {showGridSettings ? t('settings.hideGridSettings') : t('settings.gridSettings')}
+                </button>
+                {showGridSettings ? (
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label className="text-xs">{t('settings.columns')}</Label>
+                            <Input
+                                type="number"
+                                min={1}
+                                step="1"
+                                value={state.selectedLayoutColumns}
+                                onChange={(event) => actions.updateLayoutColumns(Number(event.target.value))}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs">{t('settings.rows')}</Label>
+                            <Input
+                                type="number"
+                                min={1}
+                                step="1"
+                                value={state.selectedLayoutRows}
+                                onChange={(event) => actions.updateLayoutRows(Number(event.target.value))}
+                            />
+                        </div>
+                    </div>
+                ) : null}
+            </div>
+
+            {state.activePhoto ? (
+                <div className="space-y-1">
+                    <Label className="text-xs">{t('settings.photoCopies')}</Label>
+                    <Input
+                        type="number"
+                        min={1}
+                        step="1"
+                        value={state.activePhoto.copies}
+                        onChange={(event) => actions.updateActivePhotoCopies(Number(event.target.value))}
+                    />
+                </div>
+            ) : null}
         </div>
     )
 }
