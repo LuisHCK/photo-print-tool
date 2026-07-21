@@ -75,26 +75,24 @@ export function PrintPages() {
                                 {state.showCropGuides ? (
                                     state.cutGuideStyle === 'crosses' ? (
                                         <>
-                                            <div style={{ position: 'absolute', zIndex: 1, left: '-1mm', top: '-5mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
-                                            <div style={{ position: 'absolute', zIndex: 1, top: '-1mm', left: '-5mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
-                                            <div style={{ position: 'absolute', zIndex: 1, right: '-1mm', top: '-5mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
-                                            <div style={{ position: 'absolute', zIndex: 1, top: '-1mm', right: '-5mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
-                                            <div style={{ position: 'absolute', zIndex: 1, left: '-1mm', bottom: '-5mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
-                                            <div style={{ position: 'absolute', zIndex: 1, bottom: '-1mm', left: '-5mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
-                                            <div style={{ position: 'absolute', zIndex: 1, right: '-1mm', bottom: '-5mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
-                                            <div style={{ position: 'absolute', zIndex: 1, bottom: '-1mm', right: '-5mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, left: '-0.2mm', top: '-4mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, top: '-0.2mm', left: '-4mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, right: '-0.2mm', top: '-4mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, top: '-0.2mm', right: '-4mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, left: '-0.2mm', bottom: '-4mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, bottom: '-0.2mm', left: '-4mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, right: '-0.2mm', bottom: '-4mm', width: '0.2mm', height: '4mm', backgroundColor: '#737373' }} />
+                                            <div style={{ position: 'absolute', zIndex: 1, bottom: '-0.2mm', right: '-4mm', height: '0.2mm', width: '4mm', backgroundColor: '#737373' }} />
                                         </>
                                     ) : (
                                         <div
                                             style={{
                                                 position: 'absolute',
                                                 zIndex: 1,
-                                                top: '-1mm',
-                                                right: '-1mm',
-                                                bottom: '-1mm',
-                                                left: '-1mm',
-                                                border: '0.2mm solid #737373',
-                                                borderStyle: state.cutGuideStyle === 'dotted' ? 'dotted' : 'dashed'
+                                                inset: 0,
+                                                outlineWidth: '0.2mm',
+                                                outlineStyle: state.cutGuideStyle === 'dotted' ? 'dotted' : 'dashed',
+                                                outlineColor: '#737373'
                                             }}
                                         />
                                     )

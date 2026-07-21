@@ -121,7 +121,7 @@ export function PreviewPanel() {
                 </div>
 
                 <div className="xl:flex-1 xl:min-h-0 xl:overflow-y-auto space-y-3">
-                    <div className="flex justify-center overflow-x-auto rounded-md bg-muted/30 p-4">
+                    <div className="flex justify-center rounded-md bg-muted/30 p-4">
                         <div
                             className="relative shrink-0 bg-white shadow-sm"
                             style={{
@@ -204,28 +204,25 @@ export function PreviewPanel() {
                                         {state.showCropGuides ? (
                                             state.cutGuideStyle === 'crosses' ? (
                                                 <>
-                                                    <div className="pointer-events-none absolute z-10" style={{ left: '-1px', top: '-5px', width: '1px', height: '4px', backgroundColor: '#a3a3a3' }} />
-                                                    <div className="pointer-events-none absolute z-10" style={{ top: '-1px', left: '-5px', height: '1px', width: '4px', backgroundColor: '#a3a3a3' }} />
-                                                    <div className="pointer-events-none absolute z-10" style={{ right: '-1px', top: '-5px', width: '1px', height: '4px', backgroundColor: '#a3a3a3' }} />
-                                                    <div className="pointer-events-none absolute z-10" style={{ top: '-1px', right: '-5px', height: '1px', width: '4px', backgroundColor: '#a3a3a3' }} />
-                                                    <div className="pointer-events-none absolute z-10" style={{ left: '-1px', bottom: '-5px', width: '1px', height: '4px', backgroundColor: '#a3a3a3' }} />
-                                                    <div className="pointer-events-none absolute z-10" style={{ bottom: '-1px', left: '-5px', height: '1px', width: '4px', backgroundColor: '#a3a3a3' }} />
-                                                    <div className="pointer-events-none absolute z-10" style={{ right: '-1px', bottom: '-5px', width: '1px', height: '4px', backgroundColor: '#a3a3a3' }} />
-                                                    <div className="pointer-events-none absolute z-10" style={{ bottom: '-1px', right: '-5px', height: '1px', width: '4px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ left: '-1px', top: '-5px', width: '1px', height: '5px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ top: '-1px', left: '-5px', height: '1px', width: '5px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ right: '-1px', top: '-5px', width: '1px', height: '5px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ top: '-1px', right: '-5px', height: '1px', width: '5px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ left: '-1px', bottom: '-5px', width: '1px', height: '5px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ bottom: '-1px', left: '-5px', height: '1px', width: '5px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ right: '-1px', bottom: '-5px', width: '1px', height: '5px', backgroundColor: '#a3a3a3' }} />
+                                                    <div className="pointer-events-none absolute z-10" style={{ bottom: '-1px', right: '-5px', height: '1px', width: '5px', backgroundColor: '#a3a3a3' }} />
                                                 </>
                                             ) : (
                                                 <div
-                                                    className="pointer-events-none absolute z-10"
+                                                    className="pointer-events-none absolute z-10 inset-0"
                                                     style={{
-                                                        top: '-1px',
-                                                        right: '-1px',
-                                                        bottom: '-1px',
-                                                        left: '-1px',
-                                                        border: '1px solid #a3a3a3',
-                                                        borderStyle:
+                                                        outlineWidth: '1px',
+                                                        outlineStyle:
                                                             state.cutGuideStyle === 'dotted'
                                                                 ? 'dotted'
-                                                                : 'dashed'
+                                                                : 'dashed',
+                                                        outlineColor: '#a3a3a3'
                                                     }}
                                                 />
                                             )
