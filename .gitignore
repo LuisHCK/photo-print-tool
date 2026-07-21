@@ -35,4 +35,6 @@ desktop/install_manifest.txt
 desktop/compile_commands.json
 desktop/CTestTestfile.cmake
 desktop/_deps
+desktop/build
 desktop/CMakeUserPresets.json
+CMakeFiles/CMakeSystem.cmake

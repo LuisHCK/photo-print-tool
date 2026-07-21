@@ -8,17 +8,3 @@ coverage
 *.local
 .DS_Store
 docs
-
-# Native cpp project
-desktop/CMakeLists.txt.user
-desktop/CMakeCache.txt
-desktop/CMakeFiles
-desktop/CMakeScripts
-desktop/Testing
-desktop/Makefile
-desktop/cmake_install.cmake
-desktop/install_manifest.txt
-desktop/compile_commands.json
-desktop/CTestTestfile.cmake
-desktop/_deps
-desktop/CMakeUserPresets.json

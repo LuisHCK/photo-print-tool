@@ -7,6 +7,7 @@
     "title": "Herramienta de Impresión de Fotos",
     "subtitle": "Flujo profesional de impresión para trabajos diarios",
     "print": "Imprimir",
+    "selectPrinter": "Seleccionar impresora…",
     "settings": "Configuración",
     "theme": "Tema",
     "switchToLight": "Cambiar a modo claro",
@@ -153,5 +154,15 @@
       "contact": "Hoja de contacto",
       "passport": "Pasaporte / ID"
     }
+  },
+  "printSettings": {
+    "paperType": "Papel",
+    "quality": "Calidad",
+    "colorMode": "Color",
+    "color": "Color",
+    "grayscale": "Escala de grises",
+    "copies": "Copias",
+    "printNow": "Imprimir ahora",
+    "printOptions": "Opciones de impresión"
   }
 }

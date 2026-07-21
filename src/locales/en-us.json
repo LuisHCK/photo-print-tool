@@ -7,6 +7,7 @@
     "title": "Photo Print Tool",
     "subtitle": "Professional print workflow for daily photo jobs",
     "print": "Print",
+    "selectPrinter": "Select printer…",
     "settings": "Settings",
     "theme": "Theme",
     "switchToLight": "Switch to light mode",
@@ -153,5 +154,15 @@
       "contact": "Contact Sheet",
       "passport": "Passport / ID"
     }
+  },
+  "printSettings": {
+    "paperType": "Paper",
+    "quality": "Quality",
+    "colorMode": "Color",
+    "color": "Color",
+    "grayscale": "Grayscale",
+    "copies": "Copies",
+    "printNow": "Print Now",
+    "printOptions": "Print options"
   }
 }
