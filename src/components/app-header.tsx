@@ -16,6 +16,7 @@ import {
     type SupportedLanguage
 } from '@/i18n'
 import { NativePrintContext } from '@/context/native-print-context'
+import { mediaTypeName } from '@/lib/media-types'
 import {
     MoonIcon,
     PrinterIcon,
@@ -72,6 +73,7 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
 
     const printer = native?.printers.find((p) => p.id === native.selectedPrinterId)
     const paperSizes = printer?.paperSizes ?? []
+    const paperTypes = printer?.paperTypes ?? []
     const qualities = printer?.qualities ?? []
 
     return (
@@ -131,6 +133,27 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
                                         {paperSizes.map((s) => (
                                             <SelectItem key={s.id} value={s.id}>
                                                 {s.name} &mdash; {s.widthMm}&times;{s.heightMm} mm
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">
+                                    {t('printSettings.mediaType')}
+                                </Label>
+                                <Select
+                                    value={native.selectedMediaTypeId ?? undefined}
+                                    onValueChange={native.setSelectedMediaTypeId}
+                                >
+                                    <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="—" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {paperTypes.map((m) => (
+                                            <SelectItem key={m.id} value={m.id}>
+                                                {mediaTypeName(m.id, t)}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

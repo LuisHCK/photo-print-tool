@@ -8,6 +8,8 @@ export interface NativePrintContextValue {
   setSelectedPrinterId: (id: string) => void
   selectedPaperSizeId: string | null
   setSelectedPaperSizeId: (id: string) => void
+  selectedMediaTypeId: string | null
+  setSelectedMediaTypeId: (id: string) => void
   selectedQualityDpi: number | null
   setSelectedQualityDpi: (dpi: number) => void
   colorMode: 'color' | 'grayscale'

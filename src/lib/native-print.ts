@@ -10,12 +10,18 @@ export interface PrintQuality {
   name: string
 }
 
+export interface MediaType {
+  id: string
+  name: string
+}
+
 export interface PrinterInfo {
   id: string
   name: string
   isDefault: boolean
   paperSizes: PaperSize[]
   qualities: PrintQuality[]
+  paperTypes: MediaType[]
   supportsColor: boolean
   supportsGrayscale: boolean
 }

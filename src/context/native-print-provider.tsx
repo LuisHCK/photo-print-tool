@@ -8,6 +8,7 @@ export function NativePrintProvider({ children }: { children: ReactNode }) {
   const [printers, setPrinters] = useState<PrinterInfo[]>([])
   const [selectedPrinterId, setSelectedPrinterId] = useState<string | null>(null)
   const [selectedPaperSizeId, setSelectedPaperSizeId] = useState<string | null>(null)
+  const [selectedMediaTypeId, setSelectedMediaTypeId] = useState<string | null>(null)
   const [selectedQualityDpi, setSelectedQualityDpi] = useState<number | null>(null)
   const [colorMode, setColorMode] = useState<'color' | 'grayscale'>('color')
   const [copies, setCopies] = useState(1)
@@ -30,6 +31,7 @@ export function NativePrintProvider({ children }: { children: ReactNode }) {
         if (default_) {
           setSelectedPrinterId(default_.id)
           setSelectedPaperSizeId(default_.paperSizes[0]?.id ?? null)
+          setSelectedMediaTypeId(default_.paperTypes[0]?.id ?? null)
           setSelectedQualityDpi(default_.qualities[0]?.dpi ?? null)
         }
       })
@@ -52,6 +54,7 @@ export function NativePrintProvider({ children }: { children: ReactNode }) {
       const p = printers.find((x) => x.id === id)
       if (p) {
         setSelectedPaperSizeId(p.paperSizes[0]?.id ?? null)
+        setSelectedMediaTypeId(p.paperTypes[0]?.id ?? null)
         setSelectedQualityDpi(p.qualities[0]?.dpi ?? null)
       }
     },
@@ -66,6 +69,8 @@ export function NativePrintProvider({ children }: { children: ReactNode }) {
       setSelectedPrinterId: handleSelectPrinter,
       selectedPaperSizeId,
       setSelectedPaperSizeId,
+      selectedMediaTypeId,
+      setSelectedMediaTypeId,
       selectedQualityDpi,
       setSelectedQualityDpi,
       colorMode,
@@ -81,6 +86,7 @@ export function NativePrintProvider({ children }: { children: ReactNode }) {
       selectedPrinterId,
       handleSelectPrinter,
       selectedPaperSizeId,
+      selectedMediaTypeId,
       selectedQualityDpi,
       colorMode,
       copies,

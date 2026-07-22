@@ -77,6 +77,7 @@ std::string MacPrinter::getPrinters() {
 
     json papers = json::array();
     json qualities = json::array();
+    json media_types = json::array();
     bool supports_color = false;
     bool supports_grayscale = false;
 
@@ -168,6 +169,30 @@ std::string MacPrinter::getPrinters() {
         }
       }
 
+      // 4. Process Media Types (paper stock/finish)
+      media_types = json::array();
+      ipp_attribute_t* tattr = cupsFindDestSupported(
+          http, dest, dinfo, CUPS_MEDIA_TYPE);
+      if (tattr) {
+        int tcount = ippGetCount(tattr);
+        ipp_tag_t ttag = ippGetValueTag(tattr);
+        bool is_int = (ttag == IPP_TAG_INTEGER || ttag == IPP_TAG_ENUM);
+        for (int j = 0; j < tcount; ++j) {
+          if (is_int) {
+            int v = ippGetInteger(tattr, j);
+            media_types.push_back({{"id", std::to_string(v)}});
+          } else {
+            const char* raw_id = ippGetString(tattr, j, nullptr);
+            if (raw_id && raw_id[0] != '\0') {
+              media_types.push_back({{"id", raw_id}});
+            }
+          }
+        }
+      }
+      if (media_types.empty()) {
+        media_types.push_back({{"id", "stationery"}});
+      }
+
       cupsFreeDestInfo(dinfo);
     }
 
@@ -177,6 +202,7 @@ std::string MacPrinter::getPrinters() {
 
     p["paperSizes"] = std::move(papers);
     p["qualities"] = std::move(qualities);
+    p["paperTypes"] = std::move(media_types);
     p["supportsColor"] = supports_color;
     p["supportsGrayscale"] = supports_grayscale;
 
