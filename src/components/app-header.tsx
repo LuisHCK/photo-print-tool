@@ -17,6 +17,7 @@ import {
 } from '@/i18n'
 import { NativePrintContext } from '@/context/native-print-context'
 import { mediaTypeName } from '@/lib/media-types'
+import { submitNativePrint } from '@/lib/native-print'
 import {
     MoonIcon,
     PrinterIcon,
@@ -59,9 +60,31 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
     const { t, i18n } = useTranslation()
     const currentLanguage = getCurrentSupportedLanguage()
     const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme())
+    const [printStatus, setPrintStatus] = useState<string | null>(null)
     const native = useContext(NativePrintContext)
+    const printer = native?.printers.find((p) => p.id === native.selectedPrinterId)
+    const paperSizes = printer?.paperSizes ?? []
+    const paperTypes = printer?.paperTypes ?? []
+    const qualities = printer?.qualities ?? []
 
-    console.log(native)
+    async function handleNativePrint() {
+      setPrintStatus('sending...')
+      const outcome = await submitNativePrint({
+          printerId: native.selectedPrinterId ?? '',
+          paperSizeId: native.selectedPaperSizeId ?? '',
+          paperSizes,
+          colorMode: native.colorMode,
+          qualityDpi: native.selectedQualityDpi ?? 300,
+          copies: native.copies,
+          mediaTypeId: native.selectedMediaTypeId ?? undefined,
+      })
+      if (outcome.ok) {
+          setPrintStatus('sent')
+          setTimeout(() => setPrintStatus(null), 3000)
+      } else {
+          setPrintStatus(outcome.message)
+      }
+    }
 
     useEffect(() => {
         applyTheme(theme)
@@ -70,11 +93,6 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
     function toggleTheme() {
         setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'))
     }
-
-    const printer = native?.printers.find((p) => p.id === native.selectedPrinterId)
-    const paperSizes = printer?.paperSizes ?? []
-    const paperTypes = printer?.paperTypes ?? []
-    const qualities = printer?.qualities ?? []
 
     return (
         <header className="no-print flex items-center justify-between border-b bg-card px-6 py-3">
@@ -214,15 +232,10 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
 
                             <Button
                                 className="w-full"
-                                onClick={() => console.log('print', {
-                                    printerId: native.selectedPrinterId,
-                                    paperSizeId: native.selectedPaperSizeId,
-                                    qualityDpi: native.selectedQualityDpi,
-                                    colorMode: native.colorMode,
-                                    copies: native.copies,
-                                })}
+                                disabled={!!printStatus}
+                                onClick={handleNativePrint}
                             >
-                                {t('printSettings.printNow')}
+                                {printStatus ?? t('printSettings.printNow')}
                             </Button>
                         </PopoverContent>
                     </Popover>

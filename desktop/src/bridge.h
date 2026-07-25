@@ -12,6 +12,7 @@ public:
   Bridge(webview::webview& w, std::unique_ptr<Printer> printer);
 
 private:
+  webview::webview& m_w;
   std::unique_ptr<Printer> m_printer;
 };
 

@@ -17,7 +17,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(webview nlohmann_json)
 
-add_executable(photo-print src/main.mm src/bridge.mm src/printer_macos.mm)
+if(APPLE)
+  set(PLATFORM_SOURCES src/printer_macos.mm)
+elseif(WIN32)
+  set(PLATFORM_SOURCES src/printer_win.cpp)
+elseif(UNIX)
+  set(PLATFORM_SOURCES src/printer_linux.cpp)
+endif()
+
+add_executable(photo-print src/main.mm src/bridge.mm ${PLATFORM_SOURCES})
 target_link_libraries(photo-print PRIVATE webview::core nlohmann_json::nlohmann_json)
 
 if(APPLE)
