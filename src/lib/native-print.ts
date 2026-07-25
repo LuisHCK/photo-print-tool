@@ -49,8 +49,8 @@ declare global {
     __native__?: {
       ping(): Promise<string>
       printer: {
-        getPrinters(): Promise<string>
-        print(opts: NativePrintOptions): Promise<string>
+        getPrinters(): Promise<PrinterInfo[]>
+        print(opts: NativePrintOptions): Promise<PrintResult>
       }
     }
   }
@@ -62,13 +62,11 @@ export const nativePrint = {
   },
 
   async getPrinters(): Promise<PrinterInfo[]> {
-    const raw = await window.__native__!.printer.getPrinters()
-    return raw as PrinterInfo[]
+    return await window.__native__!.printer.getPrinters()
   },
 
   async print(options: NativePrintOptions): Promise<PrintResult> {
-    const raw = await window.__native__!.printer.print(options)
-    return raw as PrintResult
+    return await window.__native__!.printer.print(options)
   },
 }
 

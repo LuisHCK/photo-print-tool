@@ -8,6 +8,7 @@
     "subtitle": "Professional print workflow for daily photo jobs",
     "print": "Print",
     "selectPrinter": "Select printer…",
+    "noPrinters": "No printers found",
     "settings": "Settings",
     "theme": "Theme",
     "switchToLight": "Switch to light mode",

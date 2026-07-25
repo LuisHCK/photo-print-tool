@@ -25,6 +25,7 @@ import {
     SunIcon
 } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Separator } from '@/components/ui/separator'
 
 type AppHeaderProps = {
     onPrint: () => void
@@ -68,6 +69,7 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
     const qualities = printer?.qualities ?? []
 
     async function handleNativePrint() {
+      if (!native) return
       setPrintStatus('sending...')
       const outcome = await submitNativePrint({
           printerId: native.selectedPrinterId ?? '',
@@ -102,145 +104,161 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
             </div>
             <div className="flex items-center gap-3">
                 {native?.isNative && (
-                    <>
-                        <Select
-                            value={native.selectedPrinterId ?? undefined}
-                            onValueChange={native.setSelectedPrinterId}
-                            disabled={native.loading}
-                        >
-                            <SelectTrigger className="w-56">
-                                <PrinterIcon className="size-4 mr-2 shrink-0" />
-                                <SelectValue
-                                    placeholder={
-                                        native.loading
-                                            ? '…'
-                                            : native.error
-                                                ? native.error
-                                                : t('app.selectPrinter')
-                                    }
-                                />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {native.printers.map((p) => (
-                                    <SelectItem key={p.id} value={p.id}>
-                                        {p.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-
-                        <Popover>
+                    <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" size="icon" aria-label={t('printSettings.printOptions')}>
-                                <Settings2Icon className="size-4" />
+                            <Button variant="outline" className="w-56 justify-start">
+                                <PrinterIcon className="size-4 mr-2 shrink-0" />
+                                <span className="truncate">
+                                    {native.loading
+                                        ? '…'
+                                        : native.error
+                                            ? native.error
+                                            : native.selectedPrinterId
+                                                ? native.printers.find((p) => p.id === native.selectedPrinterId)?.name
+                                                : t('app.selectPrinter')}
+                                </span>
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent align="end" className="w-72 space-y-4">
-                            <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">
-                                    {t('printSettings.paperType')}
-                                </Label>
-                                <Select
-                                    value={native.selectedPaperSizeId ?? undefined}
-                                    onValueChange={native.setSelectedPaperSizeId}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="—" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {paperSizes.map((s) => (
-                                            <SelectItem key={s.id} value={s.id}>
-                                                {s.name} &mdash; {s.widthMm}&times;{s.heightMm} mm
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                        <PopoverContent align="end" className="w-80 space-y-4">
+                            {native.loading ? (
+                                <p className="text-sm text-muted-foreground text-center py-4">{'…'}</p>
+                            ) : native.error ? (
+                                <p className="text-sm text-destructive text-center py-4">{native.error}</p>
+                            ) : native.printers.length === 0 ? (
+                                <p className="text-sm text-muted-foreground text-center py-4">
+                                    {t('app.noPrinters')}
+                                </p>
+                            ) : (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs text-muted-foreground">
+                                            {t('app.selectPrinter')}
+                                        </Label>
+                                        <Select
+                                            value={native.selectedPrinterId ?? undefined}
+                                            onValueChange={native.setSelectedPrinterId}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="—" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {native.printers.map((p) => (
+                                                    <SelectItem key={p.id} value={p.id}>
+                                                        {p.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">
-                                    {t('printSettings.mediaType')}
-                                </Label>
-                                <Select
-                                    value={native.selectedMediaTypeId ?? undefined}
-                                    onValueChange={native.setSelectedMediaTypeId}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="—" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {paperTypes.map((m) => (
-                                            <SelectItem key={m.id} value={m.id}>
-                                                {mediaTypeName(m.id, t)}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                    <Separator />
 
-                            <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">
-                                    {t('printSettings.quality')}
-                                </Label>
-                                <Select
-                                    value={native.selectedQualityDpi?.toString() ?? undefined}
-                                    onValueChange={(v) => native.setSelectedQualityDpi(Number(v))}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="—" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {qualities.map((q) => (
-                                            <SelectItem key={q.dpi} value={q.dpi.toString()}>
-                                                {q.name} ({q.dpi} DPI)
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs text-muted-foreground">
+                                            {t('printSettings.paperType')}
+                                        </Label>
+                                        <Select
+                                            value={native.selectedPaperSizeId ?? undefined}
+                                            onValueChange={native.setSelectedPaperSizeId}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="—" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {paperSizes.map((s) => (
+                                                    <SelectItem key={s.id} value={s.id}>
+                                                        {s.name} &mdash; {s.widthMm}&times;{s.heightMm} mm
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">
-                                    {t('printSettings.colorMode')}
-                                </Label>
-                                <Select
-                                    value={native.colorMode}
-                                    onValueChange={(v) => native.setColorMode(v as 'color' | 'grayscale')}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="color">{t('printSettings.color')}</SelectItem>
-                                        <SelectItem value="grayscale">{t('printSettings.grayscale')}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs text-muted-foreground">
+                                            {t('printSettings.mediaType')}
+                                        </Label>
+                                        <Select
+                                            value={native.selectedMediaTypeId ?? undefined}
+                                            onValueChange={native.setSelectedMediaTypeId}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="—" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {paperTypes.map((m) => (
+                                                    <SelectItem key={m.id} value={m.id}>
+                                                        {mediaTypeName(m.id, t)}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">
-                                    {t('printSettings.copies')}
-                                </Label>
-                                <Input
-                                    type="number"
-                                    min={1}
-                                    max={999}
-                                    value={native.copies}
-                                    onChange={(e) => native.setCopies(Math.max(1, Number(e.target.value)))}
-                                />
-                            </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs text-muted-foreground">
+                                            {t('printSettings.quality')}
+                                        </Label>
+                                        <Select
+                                            value={native.selectedQualityDpi?.toString() ?? undefined}
+                                            onValueChange={(v) => native.setSelectedQualityDpi(Number(v))}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="—" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {qualities.map((q) => (
+                                                    <SelectItem key={q.dpi} value={q.dpi.toString()}>
+                                                        {q.name} ({q.dpi} DPI)
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
 
-                            <Button
-                                className="w-full"
-                                disabled={!!printStatus}
-                                onClick={handleNativePrint}
-                            >
-                                {printStatus ?? t('printSettings.printNow')}
-                            </Button>
+                                    <div className="space-y-2">
+                                        <Label className="text-xs text-muted-foreground">
+                                            {t('printSettings.colorMode')}
+                                        </Label>
+                                        <Select
+                                            value={native.colorMode}
+                                            onValueChange={(v) => native.setColorMode(v as 'color' | 'grayscale')}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="color">{t('printSettings.color')}</SelectItem>
+                                                <SelectItem value="grayscale">{t('printSettings.grayscale')}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label className="text-xs text-muted-foreground">
+                                            {t('printSettings.copies')}
+                                        </Label>
+                                        <Input
+                                            type="number"
+                                            min={1}
+                                            max={999}
+                                            value={native.copies}
+                                            onChange={(e) => native.setCopies(Math.max(1, Number(e.target.value)))}
+                                        />
+                                    </div>
+
+                                    <Button
+                                        className="w-full"
+                                        disabled={!!printStatus}
+                                        onClick={handleNativePrint}
+                                    >
+                                        {printStatus ?? t('printSettings.printNow')}
+                                    </Button>
+                                </>
+                            )}
                         </PopoverContent>
                     </Popover>
-                </>)
-                }
+                )}
 
                 <Popover>
                     <PopoverTrigger asChild>
