@@ -1,115 +1,157 @@
 # Photo Print Tool
 
-Photo Print Tool is a React app for creating precise, repeatable photo print layouts.
-It’s built for real print workflows where dimensions, spacing, and consistency matter.
+**Precise photo layouts for real print workflows.**  
+No account, no uploads, no data leaves your device — everything runs in your browser.
 
 ![Photo-Print-Tool-Precise-Print-Layouts-02-27-2026_01_37_PM](https://github.com/user-attachments/assets/09866340-b85f-4395-ad63-969f820d0d07)
 
-## Try it in your browser
+> [Try it now](https://photoprint.memoriasdevidafoto.com/) — instant, no install, no sign-up.
 
-You can try the app instantly without installing anything and without creating an account:
+---
 
-[Try it now](https://photoprint.memoriasdevidafoto.com/)
+## Features
 
-Everything runs client-side in your browser.
+### Exact physical dimensions
+Design in millimetres, centimetres, or inches. Set paper size, margins, gaps, and cell dimensions with precision. The layout grid calculates everything automatically — no guesswork.
 
-## Highlights
+### Multi-photo layouts per page
+Choose from built-in presets (single, pair, four-up, contact sheet, passport/ID) or set custom rows and columns. Each photo slot is positioned and sized exactly.
 
-- Exact print sizing with unit support (`mm`, `cm`, `in`)
-- Built-in paper and layout presets (single, multi-photo, contact sheet, passport/ID)
-- Manual photo controls (fit/fill, rotate, optional manual position nudges)
-- User-controlled copies per page (custom rows/columns)
-- Custom presets saved locally
-- Zoom in/out on the preview canvas
-- Multi-language UI (English + Spanish LATAM)
-- Print-friendly output with browser `window.print()`
-- PWA — works offline with automatic updates
-- Custom event tracking (Umami)
+### Per-photo fit controls
+Control how each photo fills its cell — **Fill** (covers the area, crops edges) or **Fit** (keeps the whole photo visible). Rotate individual photos and nudge their position for perfect framing.
 
-## Tech Stack
+### Paper & layout presets
+Built-in sizes for common photo papers (4×6, 5×7, 8×10, A4, Letter, etc.) and professional print stocks. Save your own presets locally and reuse them.
 
-- React + TypeScript + Vite
-- Tailwind CSS + shadcn/ui
-- i18next + react-i18next
-- Bun
+### Print-preview zoom
+Zoom in and out on the preview canvas to inspect alignment, spacing, and crop lines before you print.
 
-## Run the project
+### Crop guides
+Overlay cut guides around each photo — dashed lines, dotted lines, or crosshairs — to aid trimming after printing.
 
-### 1) Install dependencies
+### Low-quality warnings
+The preview estimates effective PPI for each photo at the print size and warns when output may be soft.
+
+### Dark mode
+Switch between light and dark themes. Remembered across sessions.
+
+### Multi-language UI
+English (US) and Spanish (Latin America) — contributions welcome for more.
+
+---
+
+## How it works
+
+1. **Import photos** from your device — no upload, no server.
+2. **Choose paper size and layout** — pick a preset or set custom dimensions.
+3. **Adjust per-photo fit and rotation** — fine-tune each slot.
+4. **Print** — either from the browser (`window.print()`) or via the native desktop app.
+
+---
+
+## Native Desktop App (macOS)
+
+The app also ships as a self-contained desktop binary for macOS that replaces the browser print dialog with direct CUPS printing.
+
+- Discovers all installed printers and their supported paper sizes, qualities, and media types
+- Renders pages at native print resolution via offscreen WebKit
+- Submits to CUPS with full printer capability negotiation
+- Supports job cancellation
+
+Build from source (requires CMake, a C++17 compiler, and the CUPS SDK):
+
+```
+bun run build:desktop
+```
+
+---
+
+## Privacy
+
+- **Zero uploads.** Your photos never leave your device — not to a server, not to a cloud.
+- **No accounts.** No sign-up, no login, no user tracking beyond optional Umami analytics (opt-in via env variable).
+- **Client-side only.** The PWA version runs entirely in your browser. The desktop version renders and prints locally.
+
+---
+
+## Technical
+
+### Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19 + TypeScript + Vite |
+| Styling | Tailwind CSS 4 + shadcn/ui (Radix primitives) |
+| i18n | i18next + react-i18next |
+| Package manager | Bun |
+| Desktop (macOS) | C++17 + webview/webview + CUPS + WKWebView |
+| Build (desktop) | CMake |
+| PWA | Vite PWA plugin (service worker, precache, offline) |
+
+### Run the web app
 
 ```bash
 bun install
+bun run dev        # → http://localhost:5173
 ```
 
-### 2) Start development server
+### Build for production
 
 ```bash
-bun run dev
+bun run build      # outputs to dist/
 ```
 
-### 3) Build for production
+### Build the desktop binary (macOS)
 
 ```bash
-bun run build
+bun run build:desktop
 ```
 
-### 4) Run lint
+Requires: CMake, Xcode Command Line Tools (includes CUPS SDK, WebKit).
+
+### Lint
 
 ```bash
 bun run lint
 ```
 
-### 5) Check translations
+### Check translations
 
 ```bash
 bun run scripts/check-translations.ts
 ```
 
-## Environment variables
+### Docker
+
+#### Development
+
+```bash
+docker build --target dev -t photo-print:dev .
+docker run --rm -p 5173:5173 photo-print:dev
+```
+
+#### Production (Nginx)
+
+```bash
+docker build --target production -t photo-print:prod .
+docker run --rm -p 8080:8080 photo-print:prod
+```
+
+Open http://localhost:8080.
+
+### PWA
+
+The app registers a service worker on first visit that precaches all built assets for offline use. Updates apply automatically — the page reloads to activate the latest version.
+
+### Environment variables
 
 | Variable | Description |
 |---|---|
 | `VITE_UMAMI_URL` | Umami analytics script URL (optional) |
-| `VITE_UMAMI_WEBSITE_ID` | Umami website ID (optional) |
+| `VITE_UMAMI_WEBSITE_ID` | Umami analytics website ID (optional) |
 
-Create a `.env` file in the project root to enable analytics tracking.
+Create a `.env` file in the project root to enable analytics.
 
-## Docker
+### Print note
 
-### Development image
-
-Build:
-
-```bash
-docker build --target dev -t photo-print:dev .
-```
-
-Run:
-
-```bash
-docker run --rm -p 5173:5173 photo-print:dev
-```
-
-### Production image (Nginx)
-
-Build:
-
-```bash
-docker build --target production -t photo-print:prod .
-```
-
-Run:
-
-```bash
-docker run --rm -p 8080:8080 photo-print:prod
-```
-
-Then open http://localhost:8080.
-
-## PWA
-
-The app is a Progressive Web App. It registers a service worker on the first visit that precaches all built assets for offline use. Updates are applied automatically when detected — the page reloads to activate the latest version.
-
-## Print note
-
-For accurate physical output, disable print scaling in the browser dialog (use options like `Actual size` / `100%`).
+For accurate physical output, disable print scaling in the browser dialog — choose **Actual size** or **100%** rather than **Fit to page**.
