@@ -461,10 +461,10 @@ Tasks are ordered sequentially. Complete one before starting the next. After fin
 - [x] **Task 5 — Native print panel UI**: Add a native print bar below the header with dropdowns for paper type, print quality, color mode, copies input, and a Print Now button. Printer dropdown populates from discovery API; paper and quality dropdowns filter based on selected printer.
   - **Done when**: The panel renders in native mode, printer dropdown shows real printers, and selecting a printer updates the available paper/quality options.
 
-- [ ] **Task 6 — Offscreen HTML rendering (macOS)**: In `printer_macos.mm`, implement rendering a provided HTML string to an `NSImage` at the target DPI using an offscreen `WKWebView` snapshot. Handle layout wait and font loading. Return raw bitmap data suitable for the printer spooler.
-  - **Done when**: Passing an HTML string with an image and dimensions returns a correctly-sized bitmap at the requested DPI.
+- [x] **Task 6 — Offscreen HTML rendering (macOS)**: In `printer_macos.mm` (and later `bridge.mm`), implement rendering a provided HTML string to a PDF at the target dimensions using an offscreen `WKWebView` snapshot via `WKPDFConfiguration`. Handle layout wait and font loading.
+  - **Done when**: Passing an HTML string with an image and dimensions returns a correctly-sized PDF at the requested page size. (Fixed: also convert blob URLs to data URIs before serialization so offscreen webview can render images.)
 
-- [ ] **Task 7 — Print submission (macOS)**: Complete the `Printer::print()` implementation — receive HTML + settings, render via offscreen webview, create `NSPrintOperation` with the correct printer/paper/quality, send to printer. Wire the frontend Print Now button through `nativePrint.print()` to the C++ backend. Show a status indicator while printing.
+- [x] **Task 7 — Print submission (macOS)**: Implement the native `print()` binding — receive HTML + settings, render via offscreen WKWebView to PDF, submit to CUPS via `cupsPrintFile`. Wire the frontend Print Now button through `nativePrint.print()` to the C++ backend.
   - **Done when**: Clicking Print Now sends the page to the physical printer with the selected paper type and quality settings. Status feedback is shown in the UI.
 
 - [ ] **Task 8 — Error handling & polish**: Handle edge cases: no printers installed, printer goes offline, print job failure, empty photo list. Show loading states during printer enumeration and print. Add job cancellation from the UI. Ensure the app doesn't crash on any error path.

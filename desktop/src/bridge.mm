@@ -178,9 +178,9 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
   int qualityDpi = [objc_getAssociatedObject(webView, kQualityDpiKey) intValue];
   NSString *mediaType = objc_getAssociatedObject(webView, kMediaTypeKey);
 
-  // Write PDF to a temp file in /tmp (CUPS daemon must be able to read it)
-  NSString *tmpPath = [NSString stringWithFormat:@"/tmp/%@",
-                         [[NSUUID UUID] UUIDString]];
+  // Write PDF to a temp file (CUPS daemon must be able to read it)
+  NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:
+                         [NSString stringWithFormat:@"%@.pdf", [[NSUUID UUID] UUIDString]]];
   if (![pdfData writeToFile:tmpPath atomically:YES]) {
     [self failWithError:@"Failed to write temporary PDF"];
     return;
@@ -224,7 +224,7 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
   const char *filePath = [tmpPath fileSystemRepresentation];
 
   NSLog(@"[PrintHandler] calling cupsPrintFile(printer=%s)…", printer);
-  int jobId = cupsPrintFile(printer, "Photo Print", filePath,
+  int jobId = cupsPrintFile(printer, filePath, "Photo Print",
                              (int)cupsOpts.size(), cupsOpts.data());
   NSLog(@"[PrintHandler] cupsPrintFile returned jobId=%d", jobId);
 
@@ -328,13 +328,32 @@ Bridge::Bridge(webview::webview& w, std::unique_ptr<Printer> printer)
     // removes that association.
   }, nullptr);
 
+  // Cancel print job by ID
+  w.bind("cancelPrintJob", [this](const std::string& id, const std::string& req, void* /*arg*/) {
+    auto args = json::parse(req);
+    auto opts = json::parse(args[0].get<std::string>());
+    std::string printerId = opts["printerId"];
+    int jobId = opts["jobId"];
+
+    ipp_status_t status = cupsCancelJob2(CUPS_HTTP_DEFAULT, printerId.c_str(), jobId, 0);
+    json result;
+    if (status == IPP_STATUS_OK) {
+      result["status"] = "cancelled";
+    } else {
+      result["status"] = "failed";
+      result["error"] = cupsLastErrorString();
+    }
+    m_w.resolve(id, 0, result.dump());
+  }, nullptr);
+
   // Inject JS API so the frontend can call native functions via window.__native__
   w.init(R"(
     window.__native__ = {
       ping: () => window.__webview__.call("ping"),
       printer: {
         getPrinters: () => window.__webview__.call("getPrinters"),
-        print: (opts) => window.__webview__.call("print", JSON.stringify(opts))
+        print: (opts) => window.__webview__.call("print", JSON.stringify(opts)),
+        cancelPrintJob: (opts) => window.__webview__.call("cancelPrintJob", JSON.stringify(opts))
       }
     };
   )");

@@ -18,6 +18,7 @@ export interface NativePrintContextValue {
   setCopies: (n: number) => void
   loading: boolean
   error: string | null
+  cancelPrintJob: () => Promise<void>
 }
 
 export const NativePrintContext = createContext<NativePrintContextValue | null>(null)

@@ -312,7 +312,8 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
   }
 
   // Write PDF to a temporary file for CUPS
-  NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
+  NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:
+                         [NSString stringWithFormat:@"%@.pdf", [[NSUUID UUID] UUIDString]]];
   BOOL wrote = [pdfData writeToFile:tmpPath atomically:YES];
   if (!wrote) {
     NSLog(@"[MacPrinter::print] ERROR: failed to write temp PDF to %@", tmpPath);
@@ -347,7 +348,7 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
 
   NSLog(@"[MacPrinter::print] calling cupsPrintFile(printer=%s, opts_count=%zu)...",
         printer, cupsOpts.size());
-  int jobId = cupsPrintFile(printer, "Photo Print", filePath,
+  int jobId = cupsPrintFile(printer, filePath, "Photo Print",
                              (int)cupsOpts.size(), cupsOpts.data());
   NSLog(@"[MacPrinter::print] cupsPrintFile returned jobId=%d", jobId);
 

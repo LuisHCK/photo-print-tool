@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,6 +19,7 @@ import { NativePrintContext } from '@/context/native-print-context'
 import { mediaTypeName } from '@/lib/media-types'
 import { submitNativePrint } from '@/lib/native-print'
 import {
+    Loader2,
     MoonIcon,
     PrinterIcon,
     Settings2Icon,
@@ -62,15 +63,28 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
     const currentLanguage = getCurrentSupportedLanguage()
     const [theme, setTheme] = useState<ThemeMode>(() => getInitialTheme())
     const [printStatus, setPrintStatus] = useState<string | null>(null)
+    const printAbortedRef = useRef(false)
     const native = useContext(NativePrintContext)
     const printer = native?.printers.find((p) => p.id === native.selectedPrinterId)
     const paperSizes = printer?.paperSizes ?? []
     const paperTypes = printer?.paperTypes ?? []
     const qualities = printer?.qualities ?? []
 
+    const nativeErrors: Record<string, string> = {
+      'Print failed': t('printErrors.failed'),
+      'No print pages found': t('printErrors.noPages'),
+      'Failed to enumerate printers': t('printErrors.printerEnumFailed'),
+    }
+
     async function handleNativePrint() {
       if (!native) return
-      setPrintStatus('sending...')
+      printAbortedRef.current = false
+      setPrintStatus('sending')
+
+      const timer = setTimeout(() => {
+        if (!printAbortedRef.current) setPrintStatus(t('printErrors.timeout'))
+      }, 60000)
+
       const outcome = await submitNativePrint({
           printerId: native.selectedPrinterId ?? '',
           paperSizeId: native.selectedPaperSizeId ?? '',
@@ -80,12 +94,20 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
           copies: native.copies,
           mediaTypeId: native.selectedMediaTypeId ?? undefined,
       })
+      clearTimeout(timer)
+      if (printAbortedRef.current) return
       if (outcome.ok) {
           setPrintStatus('sent')
           setTimeout(() => setPrintStatus(null), 3000)
       } else {
-          setPrintStatus(outcome.message)
+          setPrintStatus(nativeErrors[outcome.message] ?? outcome.message)
       }
+    }
+
+    function cancelPrint() {
+      printAbortedRef.current = true
+      setPrintStatus(null)
+      native?.cancelPrintJob().catch(() => {})
     }
 
     useEffect(() => {
@@ -247,13 +269,26 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
                                         />
                                     </div>
 
-                                    <Button
-                                        className="w-full"
-                                        disabled={!!printStatus}
-                                        onClick={handleNativePrint}
-                                    >
-                                        {printStatus ?? t('printSettings.printNow')}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                      <Button
+                                          className="flex-1"
+                                          disabled={printStatus === 'sending'}
+                                          onClick={handleNativePrint}
+                                      >
+                                          {printStatus === 'sending' ? (
+                                              <><Loader2 className="size-4 mr-2 animate-spin" />{t('printSettings.sending')}</>
+                                          ) : printStatus === 'sent' ? (
+                                              t('printSettings.sent')
+                                          ) : (
+                                              printStatus ?? t('printSettings.printNow')
+                                          )}
+                                      </Button>
+                                      {printStatus === 'sending' && (
+                                          <Button variant="secondary" onClick={cancelPrint}>
+                                              {t('printSettings.cancel')}
+                                          </Button>
+                                      )}
+                                    </div>
                                 </>
                             )}
                         </PopoverContent>

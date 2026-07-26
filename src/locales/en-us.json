@@ -194,6 +194,15 @@
     "grayscale": "Grayscale",
     "copies": "Copies",
     "printNow": "Print Now",
-    "printOptions": "Print options"
+    "printOptions": "Print options",
+    "sending": "Sending…",
+    "sent": "Sent",
+    "cancel": "Cancel"
+  },
+  "printErrors": {
+    "timeout": "Print timed out",
+    "failed": "Print failed",
+    "noPages": "No pages to print",
+    "printerEnumFailed": "Failed to enumerate printers"
   }
 }

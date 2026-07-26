@@ -194,6 +194,15 @@
     "grayscale": "Escala de grises",
     "copies": "Copias",
     "printNow": "Imprimir ahora",
-    "printOptions": "Opciones de impresión"
+    "printOptions": "Opciones de impresión",
+    "sending": "Enviando…",
+    "sent": "Enviado",
+    "cancel": "Cancelar"
+  },
+  "printErrors": {
+    "timeout": "La impresión tardó demasiado",
+    "failed": "Error al imprimir",
+    "noPages": "No hay páginas para imprimir",
+    "printerEnumFailed": "Error al detectar impresoras"
   }
 }

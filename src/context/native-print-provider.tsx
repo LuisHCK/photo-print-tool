@@ -79,6 +79,7 @@ export function NativePrintProvider({ children }: { children: ReactNode }) {
       setCopies,
       loading,
       error,
+      cancelPrintJob: () => nativePrint.cancelPrintJob(),
     }),
     [
       isNative,
