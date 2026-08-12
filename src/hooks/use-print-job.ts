@@ -75,28 +75,29 @@ function safeParsePresets(raw: string): CustomPreset[] {
 
 function loadOpenSections(): Record<SettingsSectionId, boolean> {
     if (typeof window === 'undefined') {
-        return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
+        return { layout: true, size: true, selectedPhoto: false, guidesAndAlignment: false, spacing: false }
     }
 
     try {
         const raw = window.localStorage.getItem(OPEN_SECTIONS_KEY)
         if (!raw) {
-            return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
+            return { layout: true, size: true, selectedPhoto: false, guidesAndAlignment: false, spacing: false }
         }
 
         const parsed = JSON.parse(raw)
         if (!parsed || typeof parsed !== 'object') {
-            return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
+            return { layout: true, size: true, selectedPhoto: false, guidesAndAlignment: false, spacing: false }
         }
 
         return {
             layout: parsed.layout === true,
-            sizeAndSpacing: parsed.sizeAndSpacing === true,
+            size: parsed.size === true,
+            selectedPhoto: parsed.selectedPhoto === true,
             guidesAndAlignment: parsed.guidesAndAlignment === true,
-            selectedPhoto: parsed.selectedPhoto === true
+            spacing: parsed.spacing === true
         }
     } catch {
-        return { layout: true, sizeAndSpacing: false, guidesAndAlignment: false, selectedPhoto: false }
+        return { layout: true, size: true, selectedPhoto: false, guidesAndAlignment: false, spacing: false }
     }
 }
 
@@ -473,7 +474,8 @@ export function usePrintJob(): {
         }
 
         setSectionOpen('layout', true)
-        setSectionOpen('sizeAndSpacing', false)
+        setSectionOpen('size', false)
+        setSectionOpen('spacing', false)
         setSectionOpen('selectedPhoto', false)
 
         trackEvent('import_photos', { count: loadedPhotos.length })

@@ -4,8 +4,10 @@ import { PrintSettingsGuidesAlignmentCategory } from '@/components/panels/print-
 import { PrintSettingsLayoutCategory } from '@/components/panels/print-settings/print-settings-layout-category'
 import { PrintSettingsSection } from '@/components/panels/print-settings/print-settings-section'
 import { PrintSettingsSelectedPhotoCategory } from '@/components/panels/print-settings/print-settings-selected-photo-category'
-import { PrintSettingsSizeSpacingCategory } from '@/components/panels/print-settings/print-settings-size-spacing-category'
+import { PrintSettingsSizeCategory } from '@/components/panels/print-settings/print-settings-size-category'
+import { PrintSettingsSpacingCategory } from '@/components/panels/print-settings/print-settings-spacing-category'
 import { usePrintJobActions, usePrintJobState } from '@/hooks/use-print-job-context'
+import { Crosshair, Image as ImageIcon, LayoutGrid, Move, Ruler } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export function PrintSettingsPanel() {
@@ -41,6 +43,7 @@ export function PrintSettingsPanel() {
                 <CardContent className="space-y-3 pb-6">
                     <PrintSettingsSection
                         title={t('settings.categories.layout')}
+                        icon={LayoutGrid}
                         open={state.openSections.layout}
                         onToggle={() =>
                             actions.setSectionOpen('layout', !state.openSections.layout)
@@ -50,7 +53,19 @@ export function PrintSettingsPanel() {
                     </PrintSettingsSection>
 
                     <PrintSettingsSection
+                        title={t('settings.categories.size')}
+                        icon={Ruler}
+                        open={state.openSections.size}
+                        onToggle={() =>
+                            actions.setSectionOpen('size', !state.openSections.size)
+                        }
+                    >
+                        <PrintSettingsSizeCategory />
+                    </PrintSettingsSection>
+
+                    <PrintSettingsSection
                         title={t('settings.selectedPhoto') || 'Selected Photo'}
+                        icon={ImageIcon}
                         open={state.openSections.selectedPhoto}
                         onToggle={() =>
                             actions.setSectionOpen(
@@ -63,20 +78,8 @@ export function PrintSettingsPanel() {
                     </PrintSettingsSection>
 
                     <PrintSettingsSection
-                        title={t('settings.categories.sizeAndSpacing')}
-                        open={state.openSections.sizeAndSpacing}
-                        onToggle={() =>
-                            actions.setSectionOpen(
-                                'sizeAndSpacing',
-                                !state.openSections.sizeAndSpacing
-                            )
-                        }
-                    >
-                        <PrintSettingsSizeSpacingCategory />
-                    </PrintSettingsSection>
-
-                    <PrintSettingsSection
                         title={t('settings.categories.guidesAndAlignment')}
+                        icon={Crosshair}
                         open={state.openSections.guidesAndAlignment}
                         onToggle={() =>
                             actions.setSectionOpen(
@@ -86,6 +89,17 @@ export function PrintSettingsPanel() {
                         }
                     >
                         <PrintSettingsGuidesAlignmentCategory />
+                    </PrintSettingsSection>
+
+                    <PrintSettingsSection
+                        title={t('settings.categories.spacing')}
+                        icon={Move}
+                        open={state.openSections.spacing}
+                        onToggle={() =>
+                            actions.setSectionOpen('spacing', !state.openSections.spacing)
+                        }
+                    >
+                        <PrintSettingsSpacingCategory />
                     </PrintSettingsSection>
 
                 </CardContent>

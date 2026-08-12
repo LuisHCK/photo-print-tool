@@ -1,18 +1,20 @@
 import type { ReactNode } from 'react'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, type LucideIcon } from 'lucide-react'
 
 interface PrintSettingsSectionProps {
     title: string
     open: boolean
     onToggle: () => void
     children: ReactNode
+    icon?: LucideIcon
 }
 
 export function PrintSettingsSection({
     title,
     open,
     onToggle,
-    children
+    children,
+    icon: Icon
 }: PrintSettingsSectionProps) {
     return (
         <section className="overflow-hidden rounded-xl border bg-background/80">
@@ -22,7 +24,10 @@ export function PrintSettingsSection({
                 onClick={onToggle}
                 aria-expanded={open}
             >
-                <span className="font-medium">{title}</span>
+                <span className="flex items-center gap-2 font-medium">
+                    {Icon ? <Icon className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden="true" /> : null}
+                    {title}
+                </span>
                 {open ? (
                     <ChevronUp className="text-muted-foreground h-4 w-4 shrink-0" />
                 ) : (

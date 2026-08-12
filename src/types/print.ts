@@ -33,9 +33,10 @@ export interface PrintSizePreset {
 
 export type SettingsSectionId =
     | 'layout'
-    | 'sizeAndSpacing'
-    | 'guidesAndAlignment'
+    | 'size'
     | 'selectedPhoto'
+    | 'guidesAndAlignment'
+    | 'spacing'
 
 export interface PaperPreset {
     id: PaperPresetId

@@ -85,9 +85,10 @@
     "gridAlignmentHelp": "Elige dónde se coloca la cuadrícula de fotos dentro de los márgenes.",
     "categories": {
       "layout": "Diseño y copias",
-      "sizeAndSpacing": "Tamaño y espaciado",
+      "size": "Tamaño de foto",
+      "selectedPhoto": "Foto seleccionada",
       "guidesAndAlignment": "Guías y alineación",
-      "selectedPhoto": "Foto seleccionada"
+      "spacing": "Espaciado"
     },
     "alignment": {
       "top-left": "Arriba izquierda",

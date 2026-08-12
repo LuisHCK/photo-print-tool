@@ -85,9 +85,10 @@
     "gridAlignmentHelp": "Choose where the photo grid sits inside the page margins.",
     "categories": {
       "layout": "Layout & copies",
-      "sizeAndSpacing": "Size & spacing",
+      "size": "Photo size",
+      "selectedPhoto": "Selected photo",
       "guidesAndAlignment": "Guides & alignment",
-      "selectedPhoto": "Selected photo"
+      "spacing": "Spacing"
     },
     "alignment": {
       "top-left": "Top left",
