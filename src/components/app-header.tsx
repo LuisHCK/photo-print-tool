@@ -269,26 +269,6 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
                                         />
                                     </div>
 
-                                    <div className="flex gap-2">
-                                      <Button
-                                          className="flex-1"
-                                          disabled={printStatus === 'sending'}
-                                          onClick={handleNativePrint}
-                                      >
-                                          {printStatus === 'sending' ? (
-                                              <><Loader2 className="size-4 mr-2 animate-spin" />{t('printSettings.sending')}</>
-                                          ) : printStatus === 'sent' ? (
-                                              t('printSettings.sent')
-                                          ) : (
-                                              printStatus ?? t('printSettings.printNow')
-                                          )}
-                                      </Button>
-                                      {printStatus === 'sending' && (
-                                          <Button variant="secondary" onClick={cancelPrint}>
-                                              {t('printSettings.cancel')}
-                                          </Button>
-                                      )}
-                                    </div>
                                 </>
                             )}
                         </PopoverContent>
@@ -342,8 +322,26 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
                     </PopoverContent>
                 </Popover>
 
-                <Button onClick={onPrint} aria-label={t('app.print')}>
-                    {t('app.print')}
+                {native?.isNative && printStatus === 'sending' && (
+                    <Button variant="secondary" onClick={cancelPrint}>
+                        {t('printSettings.cancel')}
+                    </Button>
+                )}
+
+                <Button
+                    onClick={native?.isNative ? handleNativePrint : onPrint}
+                    disabled={Boolean(native?.isNative) && printStatus === 'sending'}
+                    aria-label={t('app.print')}
+                >
+                    {native?.isNative && printStatus === 'sending' ? (
+                        <><Loader2 className="size-4 mr-2 animate-spin" />{t('printSettings.sending')}</>
+                    ) : native?.isNative && printStatus === 'sent' ? (
+                        t('printSettings.sent')
+                    ) : native?.isNative && printStatus ? (
+                        printStatus
+                    ) : (
+                        t('app.print')
+                    )}
                 </Button>
             </div>
         </header>

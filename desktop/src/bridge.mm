@@ -291,8 +291,10 @@ Bridge::Bridge(webview::webview& w, std::unique_ptr<Printer> printer)
     return m_printer->getPrinters();
   });
 
-  // Async print bind — uses offscreen WKWebView with callback chaining
-  w.bind("print",
+  // Async print bind — uses offscreen WKWebView with callback chaining.
+  // NOTE: avoid the name "print" — it collides with window.print, and
+  // webview's onBind() throws for existing window properties.
+  w.bind("printPhoto",
       [this](const std::string& id, const std::string& req, void* /*arg*/) {
     NSLog(@"[Bridge] async print bind called, id=%s", id.c_str());
 
@@ -352,7 +354,7 @@ Bridge::Bridge(webview::webview& w, std::unique_ptr<Printer> printer)
       ping: () => window.__webview__.call("ping"),
       printer: {
         getPrinters: () => window.__webview__.call("getPrinters"),
-        print: (opts) => window.__webview__.call("print", JSON.stringify(opts)),
+        print: (opts) => window.__webview__.call("printPhoto", JSON.stringify(opts)),
         cancelPrintJob: (opts) => window.__webview__.call("cancelPrintJob", JSON.stringify(opts))
       }
     };

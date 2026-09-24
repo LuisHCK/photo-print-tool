@@ -60,9 +60,15 @@ The app also ships as a self-contained desktop binary for macOS that replaces th
 
 Build from source (requires CMake, a C++17 compiler, and the CUPS SDK):
 
+```bash
+bun run build:desktop      # → desktop/build/photo-print.app (universal: arm64 + x86_64)
+bun run package:desktop    # → desktop/build/PhotoPrintTool.dmg
 ```
-bun run build:desktop
-```
+
+The build targets macOS 13+ and produces an ad-hoc signed `.app` bundle with the
+web assets embedded under `Contents/Resources/dist`. There is no Developer ID
+signature, so a downloaded copy must be opened once via right-click → **Open** to
+get past Gatekeeper.
 
 ---
 

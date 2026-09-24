@@ -57,8 +57,10 @@ static std::string resolve_dist_path(const char* argv0) {
   auto binary_dir = std::filesystem::path(argv0).parent_path();
 
   auto candidates = {
+      binary_dir / "../Resources/dist/index.html",         // .app bundle resources
+      binary_dir / "../../../../../dist/index.html",       // dev: build/<name>.app/Contents/MacOS
       binary_dir / "../../../dist/index.html",            // dev: desktop/build/
-      binary_dir / "../../dist/index.html",                // .app bundle: MacOS/
+      binary_dir / "../../dist/index.html",                // dev: desktop/build/
       std::filesystem::path("dist/index.html"),            // cwd fallback
   };
 

@@ -33,4 +33,4 @@ cmake -B "$ROOT_DIR/desktop/build" -S "$ROOT_DIR/desktop"
 cmake --build "$ROOT_DIR/desktop/build"
 
 echo "Launching Photo Print Tool..."
-"$ROOT_DIR/desktop/build/photo-print" "http://localhost:5173"
+"$ROOT_DIR/desktop/build/photo-print.app/Contents/MacOS/photo-print" "http://localhost:5173"
