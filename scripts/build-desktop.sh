@@ -14,6 +14,7 @@ BUILD_DIR="$ROOT_DIR/desktop/build"
 APP="$BUILD_DIR/photo-print.app"
 ARCHS="arm64;x86_64"
 DEPLOYMENT_TARGET="13.0"
+APP_VERSION="${PHOTO_PRINT_VERSION:-1.0.0}"
 WANT_DMG=1
 
 for arg in "$@"; do
@@ -48,11 +49,12 @@ if [ -f "$BUILD_DIR/CMakeCache.txt" ]; then
   fi
 fi
 
-echo "==> Configuring CMake ($ARCHS, min macOS $DEPLOYMENT_TARGET)..."
+echo "==> Configuring CMake ($ARCHS, min macOS $DEPLOYMENT_TARGET, version $APP_VERSION)..."
 cmake -S "$ROOT_DIR/desktop" -B "$BUILD_DIR" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_OSX_ARCHITECTURES="$ARCHS" \
   -DCMAKE_OSX_DEPLOYMENT_TARGET="$DEPLOYMENT_TARGET" \
+  -DPHOTO_PRINT_VERSION="$APP_VERSION" \
   -DFETCHCONTENT_QUIET=OFF
 
 echo "==> Compiling..."

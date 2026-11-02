@@ -70,6 +70,20 @@ web assets embedded under `Contents/Resources/dist`. There is no Developer ID
 signature, so a downloaded copy must be opened once via right-click → **Open** to
 get past Gatekeeper.
 
+### Automated macOS releases
+
+Pushing a tag builds the universal app and publishes a DMG on the GitHub release:
+
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+The tag name (an optional leading `v` is stripped) becomes the app version. The
+workflow runs on macOS, packages `PhotoPrintTool-<version>.dmg`, uploads it as a
+build artifact, and attaches it to the release. Because the app is only ad-hoc
+signed, users still need to open it once via right-click → **Open**.
+
 ---
 
 ## Privacy

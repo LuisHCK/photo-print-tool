@@ -11,7 +11,11 @@ if(APPLE)
   endif()
 endif()
 
-project(photo-print VERSION 1.0.0 LANGUAGES CXX)
+if(NOT PHOTO_PRINT_VERSION)
+  set(PHOTO_PRINT_VERSION "1.0.0")
+endif()
+
+project(photo-print VERSION ${PHOTO_PRINT_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
