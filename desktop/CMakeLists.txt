@@ -35,6 +35,28 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(webview nlohmann_json)
 
+# ---------------------------------------------------------------------------
+# Third-party warning cleanup
+# ---------------------------------------------------------------------------
+# webview 0.12 uses Objective-C++ constructs that modern Apple clang reports as
+# deprecated literal operators and 'auto' deduced to 'id'. These are upstream
+# warnings, so silence them for webview and for our sources that include its
+# header. First-party warnings stay enabled.
+if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(WEBVIEW_WARNING_SUPPRESSIONS
+    -Wno-unknown-warning-option
+    -Wno-deprecated-literal-operator
+    -Wno-auto-var-id)
+
+  foreach(target webview_core_static webview_core_shared)
+    if(TARGET ${target})
+      target_compile_options(${target} PRIVATE ${WEBVIEW_WARNING_SUPPRESSIONS})
+    endif()
+  endforeach()
+else()
+  set(WEBVIEW_WARNING_SUPPRESSIONS "")
+endif()
+
 if(APPLE)
   set(PLATFORM_SOURCES src/printer_macos.mm)
 elseif(WIN32)
@@ -50,6 +72,11 @@ else()
 endif()
 
 target_link_libraries(photo-print PRIVATE webview::core nlohmann_json::nlohmann_json)
+target_compile_options(photo-print PRIVATE ${WEBVIEW_WARNING_SUPPRESSIONS})
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  target_compile_options(photo-print PRIVATE -Wall -Wextra)
+endif()
 
 if(APPLE)
   find_library(COCOA_LIBRARY Cocoa)

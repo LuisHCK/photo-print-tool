@@ -7,6 +7,7 @@
 
 #import <WebKit/WebKit.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -271,7 +272,7 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
 
   NSLog(@"[MacPrinter::print] loading HTML into offscreen WKWebView...");
   NSLog(@"[MacPrinter::print] HTML preview (first 200 chars): %.*s",
-        (int)MIN(pageHtml.size(), 200), pageHtml.c_str());
+        (int)std::min<size_t>(pageHtml.size(), 200), pageHtml.c_str());
   NSString *nsHtml = [NSString stringWithUTF8String:pageHtml.c_str()];
   [wkView loadHTMLString:nsHtml baseURL:[NSURL URLWithString:@"about:blank"]];
 
@@ -296,6 +297,7 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
   NSLog(@"[MacPrinter::print] requesting PDF from WKWebView...");
   [wkView createPDFWithConfiguration:pdfConfig
                    completionHandler:^(NSData *data, NSError *error) {
+    (void)error;
     pdfData = data;
     pdfDone = YES;
   }];

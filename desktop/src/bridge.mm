@@ -173,7 +173,6 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
 - (void)sendToPrinter:(NSData *)pdfData webView:(WKWebView *)webView {
   // Retrieve CUPS options
   NSString *printerId = objc_getAssociatedObject(webView, kPrinterIdKey);
-  int copies = [objc_getAssociatedObject(webView, kCopiesKey) intValue];
   NSString *colorMode = objc_getAssociatedObject(webView, kColorModeKey);
   int qualityDpi = [objc_getAssociatedObject(webView, kQualityDpiKey) intValue];
   NSString *mediaType = objc_getAssociatedObject(webView, kMediaTypeKey);
