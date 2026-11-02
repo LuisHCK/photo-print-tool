@@ -142,6 +142,15 @@
     "moveLeft": "Mover izquierda (%)"
   },
   "presets": {
+    "printSize": {
+      "carnet": "Carnet (4.5 × 3.5 cm)",
+      "passport": "Pasaporte (5 × 4 cm)",
+      "us-visa": "Visa EE. UU. (5 × 5 cm)",
+      "diploma": "Diploma (5 × 4 cm)",
+      "4x6": "Foto 4 × 6 pulg",
+      "5x7": "Foto 5 × 7 pulg",
+      "8x10": "Foto 8 × 10 pulg"
+    },
     "paper": {
       "a4": "A4",
       "a5": "A5",

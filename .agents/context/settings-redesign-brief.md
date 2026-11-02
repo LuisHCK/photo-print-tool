@@ -42,7 +42,7 @@ Import photos, see a usable auto-layout immediately, and print — with the conf
 | **Print-ready** | Unchanged | Final preview | All sections collapsed except "Layout" showing a summary. Print button prominent |
 
 **Smart defaults:**
-- **Photo print size:** Auto-detect from the first uploaded photo's aspect ratio, defaulting to 4×6" (the most common print size). Options: 4×6, 5×7, 8×10, 3.5×5, wallet, or custom.
+- **Photo print size:** Auto-detect from the first uploaded photo's aspect ratio, defaulting to 4×6" (the most common print size). Options: Carnet (4.5×3.5 cm), Passport (5×4 cm), US visa (5×5 cm), Diploma (5×4 cm), Photo 4×6 in, 5×7 in, 8×10 in, or custom.
 - **Paper size:** Auto-detect from locale (Letter for US, A4 elsewhere)
 - **Layout goal:** Fit all photos on the fewest pages possible — minimize paper use
 - **Margin strategy:** Start with minimal margins (e.g., 0.5" / 12mm) and auto-calculate the grid that maximizes photos per page. Users can increase margins if they want breathing room, but the default prioritizes paper savings.

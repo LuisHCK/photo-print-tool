@@ -22,7 +22,15 @@ export type BuiltInLayoutId = 'single' | 'two' | 'four' | 'contact' | 'passport'
 export type LayoutPresetId = string
 export type PaperPresetId = string
 
-export type PrintSizeId = '4x6' | '5x7' | '8x10' | '3-5x5' | 'wallet' | 'custom'
+export type PrintSizeId =
+    | 'carnet'
+    | 'passport'
+    | 'us-visa'
+    | 'diploma'
+    | '4x6'
+    | '5x7'
+    | '8x10'
+    | 'custom'
 
 export interface PrintSizePreset {
     id: PrintSizeId

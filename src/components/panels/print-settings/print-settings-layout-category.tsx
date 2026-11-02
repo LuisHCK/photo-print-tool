@@ -72,7 +72,9 @@ export function PrintSettingsLayoutCategory() {
                     <SelectContent>
                         {PRINT_SIZE_PRESETS.map((preset) => (
                             <SelectItem key={preset.id} value={preset.id}>
-                                {preset.name}
+                                {t(`presets.printSize.${preset.id}`, {
+                                    defaultValue: preset.name
+                                })}
                             </SelectItem>
                         ))}
                         {state.customPresets.length > 0 ? (
