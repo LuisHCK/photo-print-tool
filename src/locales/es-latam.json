@@ -69,6 +69,8 @@
     "rows": "Filas",
     "exactPrintSize": "Tamaño exacto de impresión ({{unit}})",
     "widthHeight": "Ancho / Alto",
+    "cutCompensation": "Compensación de corte por lado ({{unit}})",
+    "cutCompensationHelp": "Imagen extra impresa más allá de cada línea de corte para que las fotos recortadas mantengan su tamaño exacto. 0.5 mm (0.05 cm) por lado es un buen punto de partida.",
     "pageSpacing": "Espaciado de página ({{unit}})",
     "marginGap": "Margen / Separación",
     "marginHorizontalVerticalGap": "Margen / Separación horizontal / Separación vertical",

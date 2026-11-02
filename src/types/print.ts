@@ -93,6 +93,7 @@ export interface PrintSettingsSnapshot {
     maxCopiesPerPage?: number
     cellWidthMm: number
     cellHeightMm: number
+    bleedMm: number
     marginMm: number
     gapMm?: number
     horizontalGapMm: number

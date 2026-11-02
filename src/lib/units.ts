@@ -42,3 +42,13 @@ export function parseInputToMm(value: string, unit: Unit): number | null {
 
     return toMm(parsed, unit)
 }
+
+export function parseNonNegativeInputToMm(value: string, unit: Unit): number | null {
+    const parsed = Number(value)
+
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        return null
+    }
+
+    return toMm(parsed, unit)
+}

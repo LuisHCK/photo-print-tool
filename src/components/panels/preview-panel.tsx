@@ -177,7 +177,16 @@ export function PreviewPanel() {
                                             height: `${state.cellHeightMm * effectiveScale}px`
                                         }}
                                     >
-                                        <div className="relative z-0 h-full w-full overflow-hidden">
+                                        <div
+                                            className="z-0 overflow-hidden"
+                                            style={{
+                                                position: 'absolute',
+                                                left: `${-state.bleedMm * effectiveScale}px`,
+                                                top: `${-state.bleedMm * effectiveScale}px`,
+                                                width: `${(state.cellWidthMm + state.bleedMm * 2) * effectiveScale}px`,
+                                                height: `${(state.cellHeightMm + state.bleedMm * 2) * effectiveScale}px`
+                                            }}
+                                        >
                                             {slot.photo ? (
                                                 <img
                                                     src={slot.photo.url}

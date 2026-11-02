@@ -9,7 +9,7 @@ import {
     getPageSizeMm,
     getPreviewScale
 } from '@/lib/print-layout'
-import { formatValue, parseInputToMm } from '@/lib/units'
+import { formatValue, parseInputToMm, parseNonNegativeInputToMm } from '@/lib/units'
 import type {
     CutGuideStyle,
     FitMode,
@@ -33,6 +33,7 @@ const CUSTOM_PRESETS_KEY = 'photo-print.custom-presets.v1'
 const OPEN_SECTIONS_KEY = 'photo-print.open-sections.v1'
 const GUIDE_STYLE_KEY = 'photo-print.guide-style.v1'
 const DEFAULT_PRINT_SIZE_ID: PrintSizeId = '4x6'
+const DEFAULT_BLEED_MM = 0.5
 const DEFAULT_GRID_ALIGNMENT: GridAlignment = 'top-left'
 const GRID_ALIGNMENTS: GridAlignment[] = [
     'top-left',
@@ -217,6 +218,7 @@ export interface PrintJobState {
     selectedPaperName: string
     cellWidthMm: number
     cellHeightMm: number
+    bleedMm: number
     horizontalGapMm: number
     verticalGapMm: number
     marginMm: number
@@ -230,6 +232,7 @@ export interface PrintJobState {
     cutGuideStyle: CutGuideStyle
     widthInput: NumericInputController
     heightInput: NumericInputController
+    bleedInput: NumericInputController
     marginInput: NumericInputController
     horizontalGapInput: NumericInputController
     verticalGapInput: NumericInputController
@@ -289,6 +292,7 @@ export function usePrintJob(): {
     const [verticalGapMm, setVerticalGapMm] = useState<number>(4)
     const [cellWidthMm, setCellWidthMm] = useState<number>(89)
     const [cellHeightMm, setCellHeightMm] = useState<number>(127)
+    const [bleedMm, setBleedMm] = useState<number>(DEFAULT_BLEED_MM)
     const [layoutColumns, setLayoutColumns] = useState<number>(2)
     const [layoutRows, setLayoutRows] = useState<number>(2)
     const [maxCopiesPerPage, setMaxCopiesPerPage] = useState<number>(4)
@@ -299,6 +303,9 @@ export function usePrintJob(): {
     const [cellWidthInput, setCellWidthInput] = useState<string>(() => formatNumericInput(89, 'cm'))
     const [cellHeightInput, setCellHeightInput] = useState<string>(() =>
         formatNumericInput(127, 'cm')
+    )
+    const [bleedInput, setBleedInput] = useState<string>(() =>
+        formatNumericInput(DEFAULT_BLEED_MM, 'cm')
     )
     const [marginInput, setMarginInput] = useState<string>(() => formatNumericInput(8, 'cm'))
     const [horizontalGapInput, setHorizontalGapInput] = useState<string>(() =>
@@ -377,11 +384,15 @@ export function usePrintJob(): {
         return selectedPhotos
             .map((photo) => ({
                 photo,
-                ppi: calcEffectivePpi(photo, cellWidthMm, cellHeightMm)
+                ppi: calcEffectivePpi(
+                    photo,
+                    cellWidthMm + bleedMm * 2,
+                    cellHeightMm + bleedMm * 2
+                )
             }))
             .filter((entry) => entry.ppi < 150)
             .slice(0, 3)
-    }, [cellHeightMm, cellWidthMm, selectedPhotos])
+    }, [bleedMm, cellHeightMm, cellWidthMm, selectedPhotos])
 
     function commitNumericMm(
         value: string,
@@ -391,6 +402,21 @@ export function usePrintJob(): {
     ) {
         const nextMm = parseInputToMm(value, currentUnit)
         if (nextMm) {
+            setter(nextMm)
+            return nextMm
+        }
+
+        return currentValueMm
+    }
+
+    function commitNonNegativeNumericMm(
+        value: string,
+        currentUnit: Unit,
+        currentValueMm: number,
+        setter: (nextValue: number) => void
+    ) {
+        const nextMm = parseNonNegativeInputToMm(value, currentUnit)
+        if (nextMm !== null) {
             setter(nextMm)
             return nextMm
         }
@@ -418,6 +444,36 @@ export function usePrintJob(): {
             },
             onEnter: () => {
                 const nextValueMm = commitNumericMm(value, unit, currentValueMm, setMmValue)
+                setValue(formatNumericInput(nextValueMm, unit))
+            }
+        }
+    }
+
+    function createNonNegativeNumericInputController(
+        value: string,
+        setValue: (next: string) => void,
+        currentValueMm: number,
+        setMmValue: (nextValue: number) => void
+    ): NumericInputController {
+        return {
+            value,
+            onChange: setValue,
+            onBlur: () => {
+                const nextValueMm = commitNonNegativeNumericMm(
+                    value,
+                    unit,
+                    currentValueMm,
+                    setMmValue
+                )
+                setValue(formatNumericInput(nextValueMm, unit))
+            },
+            onEnter: () => {
+                const nextValueMm = commitNonNegativeNumericMm(
+                    value,
+                    unit,
+                    currentValueMm,
+                    setMmValue
+                )
                 setValue(formatNumericInput(nextValueMm, unit))
             }
         }
@@ -573,6 +629,7 @@ export function usePrintJob(): {
         setUnit(nextUnit)
         setCellWidthInput(formatNumericInput(cellWidthMm, nextUnit))
         setCellHeightInput(formatNumericInput(cellHeightMm, nextUnit))
+        setBleedInput(formatNumericInput(bleedMm, nextUnit))
         setMarginInput(formatNumericInput(marginMm, nextUnit))
         setHorizontalGapInput(formatNumericInput(horizontalGapMm, nextUnit))
         setVerticalGapInput(formatNumericInput(verticalGapMm, nextUnit))
@@ -674,6 +731,7 @@ export function usePrintJob(): {
             maxCopiesPerPage,
             cellWidthMm,
             cellHeightMm,
+            bleedMm,
             marginMm,
             horizontalGapMm,
             verticalGapMm,
@@ -705,6 +763,9 @@ export function usePrintJob(): {
         const nextHeightMm = Number.isFinite(snapshot.cellHeightMm)
             ? Math.max(snapshot.cellHeightMm, 0.1)
             : nextLayout.defaultCellHeightMm
+        const nextBleedMm = Number.isFinite(snapshot.bleedMm)
+            ? Math.max(snapshot.bleedMm, 0)
+            : DEFAULT_BLEED_MM
         const nextMarginMm = Number.isFinite(snapshot.marginMm)
             ? Math.max(snapshot.marginMm, 0)
             : marginMm
@@ -734,6 +795,7 @@ export function usePrintJob(): {
         setMaxCopiesPerPage(clampCopiesToCapacity(nextMaxCopiesPerPage, nextColumns, nextRows))
         setCellWidthMm(nextWidthMm)
         setCellHeightMm(nextHeightMm)
+        setBleedMm(nextBleedMm)
         setMarginMm(nextMarginMm)
         setHorizontalGapMm(nextHorizontalGapMm)
         setVerticalGapMm(nextVerticalGapMm)
@@ -743,6 +805,7 @@ export function usePrintJob(): {
 
         setCellWidthInput(formatNumericInput(nextWidthMm, snapshot.unit))
         setCellHeightInput(formatNumericInput(nextHeightMm, snapshot.unit))
+        setBleedInput(formatNumericInput(nextBleedMm, snapshot.unit))
         setMarginInput(formatNumericInput(nextMarginMm, snapshot.unit))
         setHorizontalGapInput(formatNumericInput(nextHorizontalGapMm, snapshot.unit))
         setVerticalGapInput(formatNumericInput(nextVerticalGapMm, snapshot.unit))
@@ -897,6 +960,7 @@ export function usePrintJob(): {
         selectedPaperName: selectedPaper.name,
         cellWidthMm,
         cellHeightMm,
+        bleedMm,
         horizontalGapMm,
         verticalGapMm,
         marginMm,
@@ -919,6 +983,12 @@ export function usePrintJob(): {
             setCellHeightInput,
             cellHeightMm,
             setCellHeightMm
+        ),
+        bleedInput: createNonNegativeNumericInputController(
+            bleedInput,
+            setBleedInput,
+            bleedMm,
+            setBleedMm
         ),
         marginInput: createNumericInputController(
             marginInput,

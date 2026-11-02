@@ -51,10 +51,12 @@ export function PrintPages() {
                             >
                                 <div
                                     style={{
-                                        position: 'relative',
+                                        position: 'absolute',
                                         zIndex: 0,
-                                        width: '100%',
-                                        height: '100%',
+                                        left: `${-state.bleedMm}mm`,
+                                        top: `${-state.bleedMm}mm`,
+                                        width: `${state.cellWidthMm + state.bleedMm * 2}mm`,
+                                        height: `${state.cellHeightMm + state.bleedMm * 2}mm`,
                                         overflow: 'hidden'
                                     }}
                                 >
