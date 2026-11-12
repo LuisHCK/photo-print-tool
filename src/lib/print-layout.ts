@@ -22,6 +22,17 @@ export function getPreviewScale(widthMm: number, heightMm: number) {
     return Math.min(PREVIEW_MAX_WIDTH / widthMm, PREVIEW_MAX_HEIGHT / heightMm)
 }
 
+export function getPrintedCellSizeMm(
+    cellWidthMm: number,
+    cellHeightMm: number,
+    bleedMm: number
+) {
+    return {
+        widthMm: cellWidthMm + bleedMm * 2,
+        heightMm: cellHeightMm + bleedMm * 2
+    }
+}
+
 export function buildPageAssignments(
     layout: LayoutPreset,
     selectedPhotos: PhotoItem[],

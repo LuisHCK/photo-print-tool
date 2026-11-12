@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { usePrintJobActions, usePrintJobState } from '@/hooks/use-print-job-context'
-import { getGridOriginMm, getPhotoObjectPosition } from '@/lib/print-layout'
+import { getGridOriginMm, getPhotoObjectPosition, getPrintedCellSizeMm } from '@/lib/print-layout'
 import { FrameIcon, MinusIcon, PlusIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -28,6 +28,11 @@ export function PreviewPanel() {
 
     const effectiveScale = state.previewScale * zoom
     const zoomPct = Math.round(zoom * 100)
+    const printedCell = getPrintedCellSizeMm(
+        state.cellWidthMm,
+        state.cellHeightMm,
+        state.bleedMm
+    )
 
     if (!hasPhotos) {
         return (
@@ -171,22 +176,13 @@ export function PreviewPanel() {
                                             }
                                         }}
                                         style={{
-                                            left: `${offsetX * effectiveScale}px`,
-                                            top: `${offsetY * effectiveScale}px`,
-                                            width: `${state.cellWidthMm * effectiveScale}px`,
-                                            height: `${state.cellHeightMm * effectiveScale}px`
+                                            left: `${(offsetX - state.bleedMm) * effectiveScale}px`,
+                                            top: `${(offsetY - state.bleedMm) * effectiveScale}px`,
+                                            width: `${printedCell.widthMm * effectiveScale}px`,
+                                            height: `${printedCell.heightMm * effectiveScale}px`
                                         }}
                                     >
-                                        <div
-                                            className="z-0 overflow-hidden"
-                                            style={{
-                                                position: 'absolute',
-                                                left: `${-state.bleedMm * effectiveScale}px`,
-                                                top: `${-state.bleedMm * effectiveScale}px`,
-                                                width: `${(state.cellWidthMm + state.bleedMm * 2) * effectiveScale}px`,
-                                                height: `${(state.cellHeightMm + state.bleedMm * 2) * effectiveScale}px`
-                                            }}
-                                        >
+                                        <div className="relative z-0 h-full w-full overflow-hidden">
                                             {slot.photo ? (
                                                 <img
                                                     src={slot.photo.url}

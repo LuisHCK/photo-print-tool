@@ -1,8 +1,13 @@
-import { getGridOriginMm, getPhotoObjectPosition } from '@/lib/print-layout'
+import { getGridOriginMm, getPhotoObjectPosition, getPrintedCellSizeMm } from '@/lib/print-layout'
 import { usePrintJobState } from '@/hooks/use-print-job-context'
 
 export function PrintPages() {
     const state = usePrintJobState()
+    const printedCell = getPrintedCellSizeMm(
+        state.cellWidthMm,
+        state.cellHeightMm,
+        state.bleedMm
+    )
 
     return (
         <section className="print-pages">
@@ -42,21 +47,19 @@ export function PrintPages() {
                                 key={`print-slot-${page.pageIndex}-${slot.slotIndex}`}
                                 style={{
                                     position: 'absolute',
-                                    left: `${offsetX}mm`,
-                                    top: `${offsetY}mm`,
-                                    width: `${state.cellWidthMm}mm`,
-                                    height: `${state.cellHeightMm}mm`,
+                                    left: `${offsetX - state.bleedMm}mm`,
+                                    top: `${offsetY - state.bleedMm}mm`,
+                                    width: `${printedCell.widthMm}mm`,
+                                    height: `${printedCell.heightMm}mm`,
                                     overflow: 'visible'
                                 }}
                             >
                                 <div
                                     style={{
-                                        position: 'absolute',
+                                        position: 'relative',
                                         zIndex: 0,
-                                        left: `${-state.bleedMm}mm`,
-                                        top: `${-state.bleedMm}mm`,
-                                        width: `${state.cellWidthMm + state.bleedMm * 2}mm`,
-                                        height: `${state.cellHeightMm + state.bleedMm * 2}mm`,
+                                        width: '100%',
+                                        height: '100%',
                                         overflow: 'hidden'
                                     }}
                                 >

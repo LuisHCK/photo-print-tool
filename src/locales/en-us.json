@@ -70,7 +70,7 @@
     "exactPrintSize": "Exact print size ({{unit}})",
     "widthHeight": "Width / Height",
     "cutCompensation": "Cut compensation per side ({{unit}})",
-    "cutCompensationHelp": "Extra image printed past each cut line so trimmed photos keep their exact size. 0.5 mm (0.05 cm) per side is a good starting point.",
+    "cutCompensationHelp": "Extra image printed around each photo so trimming along the cut lines preserves the final size. 0.5 mm (0.05 cm) per side is a good starting point.",
     "pageSpacing": "Page spacing ({{unit}})",
     "marginGap": "Margin / Gap",
     "marginHorizontalVerticalGap": "Margin / Horizontal gap / Vertical gap",
