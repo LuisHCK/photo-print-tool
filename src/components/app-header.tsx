@@ -69,6 +69,7 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
     const paperSizes = printer?.paperSizes ?? []
     const paperTypes = printer?.paperTypes ?? []
     const qualities = printer?.qualities ?? []
+    const qualityModes = printer?.qualityModes ?? []
 
     const nativeErrors: Record<string, string> = {
       'Print failed': t('printErrors.failed'),
@@ -91,6 +92,9 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
           paperSizes,
           colorMode: native.colorMode,
           qualityDpi: native.selectedQualityDpi ?? 300,
+          qualities,
+          qualityModeId: native.selectedQualityModeId,
+          qualityModes,
           copies: native.copies,
           mediaTypeId: native.selectedMediaTypeId ?? undefined,
       })
@@ -210,16 +214,39 @@ export function AppHeader({ onPrint }: AppHeaderProps) {
                                             <SelectContent>
                                                 {paperTypes.map((m) => (
                                                     <SelectItem key={m.id} value={m.id}>
-                                                        {mediaTypeName(m.id, t)}
+                                                        {mediaTypeName(m.id, t, m.name)}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
 
+                                    {qualityModes.length > 0 && (
+                                        <div className="space-y-2">
+                                            <Label className="text-xs text-muted-foreground">
+                                                {t('printSettings.qualityMode')}
+                                            </Label>
+                                            <Select
+                                                value={native.selectedQualityModeId ?? undefined}
+                                                onValueChange={native.setSelectedQualityModeId}
+                                            >
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder="—" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {qualityModes.map((m) => (
+                                                        <SelectItem key={`${m.option}:${m.id}`} value={m.id}>
+                                                            {m.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
+
                                     <div className="space-y-2">
                                         <Label className="text-xs text-muted-foreground">
-                                            {t('printSettings.quality')}
+                                            {t('printSettings.resolution')}
                                         </Label>
                                         <Select
                                             value={native.selectedQualityDpi?.toString() ?? undefined}

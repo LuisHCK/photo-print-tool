@@ -8,11 +8,30 @@ export interface PaperSize {
 export interface PrintQuality {
   dpi: number
   name: string
+  /**
+   * The printer's native resolution option (PPD choice / IPP
+   * printer-resolution), e.g. "720x720dpi". This is what actually has to be
+   * sent to CUPS for the selected quality to take effect.
+   */
+  resolution?: string
+  x?: number
+  y?: number
 }
 
 export interface MediaType {
   id: string
+  /** Human-readable name reported by the printer driver (e.g. "Photo Paper Glossy"). */
+  name?: string
+}
+
+/** A driver-specific quality mode (e.g. Epson "Best Quality", HP "Normal"). */
+export interface PrintQualityMode {
+  /** PPD option keyword, e.g. "EPIJ_Qual". */
+  option: string
+  /** PPD choice value, e.g. "307". */
+  id: string
   name: string
+  isDefault?: boolean
 }
 
 export interface PrinterInfo {
@@ -21,6 +40,7 @@ export interface PrinterInfo {
   isDefault: boolean
   paperSizes: PaperSize[]
   qualities: PrintQuality[]
+  qualityModes: PrintQualityMode[]
   paperTypes: MediaType[]
   supportsColor: boolean
   supportsGrayscale: boolean
@@ -34,6 +54,14 @@ export interface NativePrintOptions {
   copies: number
   colorMode: 'color' | 'grayscale'
   qualityDpi: number
+  /** PPD resolution choice to send as the CUPS "Resolution" option. */
+  qualityResolution?: string
+  /** PPD option keyword for the selected driver quality mode (e.g. "EPIJ_Qual"). */
+  qualityModeOption?: string
+  /** PPD choice value for the selected driver quality mode (e.g. "307"). */
+  qualityModeId?: string
+  /** PWG media name of the selected paper size (sent as CUPS "media"). */
+  paperSizeId?: string
   mediaType?: string
   orientation: 'portrait' | 'landscape'
 }
@@ -126,6 +154,9 @@ export interface PrintSubmission {
   paperSizes: PaperSize[]
   colorMode: 'color' | 'grayscale'
   qualityDpi: number
+  qualities: PrintQuality[]
+  qualityModeId: string | null
+  qualityModes: PrintQualityMode[]
   copies: number
   mediaTypeId?: string
 }
@@ -140,6 +171,14 @@ export async function submitNativePrint(
     (s) => s.id === settings.paperSizeId
   )
 
+  const selectedQuality = settings.qualities.find(
+    (q) => q.dpi === settings.qualityDpi
+  )
+
+  const selectedQualityMode = settings.qualityModes.find(
+    (m) => m.id === settings.qualityModeId
+  )
+
   const result = await nativePrint.print({
     pageHtml,
     pageWidthMm: selectedPaper?.widthMm ?? 150,
@@ -148,6 +187,10 @@ export async function submitNativePrint(
     copies: settings.copies,
     colorMode: settings.colorMode,
     qualityDpi: settings.qualityDpi,
+    qualityResolution: selectedQuality?.resolution,
+    qualityModeOption: selectedQualityMode?.option,
+    qualityModeId: selectedQualityMode?.id,
+    paperSizeId: settings.paperSizeId || undefined,
     mediaType: settings.mediaTypeId ?? undefined,
     orientation: 'portrait',
   })

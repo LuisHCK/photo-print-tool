@@ -18,6 +18,10 @@ static const void *kPrinterIdKey  = &kPrinterIdKey;
 static const void *kCopiesKey     = &kCopiesKey;
 static const void *kColorModeKey  = &kColorModeKey;
 static const void *kQualityDpiKey = &kQualityDpiKey;
+static const void *kQualityResolutionKey = &kQualityResolutionKey;
+static const void *kQualityModeOptionKey = &kQualityModeOptionKey;
+static const void *kQualityModeIdKey = &kQualityModeIdKey;
+static const void *kPaperSizeIdKey = &kPaperSizeIdKey;
 static const void *kMediaTypeKey  = &kMediaTypeKey;
 
 // ---------------------------------------------------------------------------
@@ -40,6 +44,10 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
                copies:(int)copies
             colorMode:(const std::string &)colorMode
            qualityDpi:(int)qualityDpi
+    qualityResolution:(const std::string &)qualityResolution
+      qualityModeOption:(const std::string &)qualityModeOption
+          qualityModeId:(const std::string &)qualityModeId
+          paperSizeId:(const std::string &)paperSizeId
             mediaType:(const std::string &)mediaType;
 
 @end
@@ -69,6 +77,10 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
                copies:(int)copies
             colorMode:(const std::string &)colorMode
            qualityDpi:(int)qualityDpi
+    qualityResolution:(const std::string &)qualityResolution
+      qualityModeOption:(const std::string &)qualityModeOption
+          qualityModeId:(const std::string &)qualityModeId
+          paperSizeId:(const std::string &)paperSizeId
             mediaType:(const std::string &)mediaType {
   CGFloat pageWidthPt = widthMm * 72.0 / 25.4;
   CGFloat pageHeightPt = heightMm * 72.0 / 25.4;
@@ -86,6 +98,10 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
   // Attach CUPS options
   NSString *nsPrinterId = [[NSString alloc] initWithUTF8String:printerId.c_str()];
   NSString *nsColorMode = [[NSString alloc] initWithUTF8String:colorMode.c_str()];
+  NSString *nsQualityResolution = [[NSString alloc] initWithUTF8String:qualityResolution.c_str()];
+  NSString *nsQualityModeOption = [[NSString alloc] initWithUTF8String:qualityModeOption.c_str()];
+  NSString *nsQualityModeId = [[NSString alloc] initWithUTF8String:qualityModeId.c_str()];
+  NSString *nsPaperSizeId = [[NSString alloc] initWithUTF8String:paperSizeId.c_str()];
   NSString *nsMediaType = [[NSString alloc] initWithUTF8String:mediaType.c_str()];
   NSNumber *nsCopies = [[NSNumber alloc] initWithInt:copies];
   NSNumber *nsQualityDpi = [[NSNumber alloc] initWithInt:qualityDpi];
@@ -98,11 +114,23 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
                            OBJC_ASSOCIATION_RETAIN);
   objc_setAssociatedObject(self.webView, kQualityDpiKey, nsQualityDpi,
                            OBJC_ASSOCIATION_RETAIN);
+  objc_setAssociatedObject(self.webView, kQualityResolutionKey, nsQualityResolution,
+                           OBJC_ASSOCIATION_RETAIN);
+  objc_setAssociatedObject(self.webView, kQualityModeOptionKey, nsQualityModeOption,
+                           OBJC_ASSOCIATION_RETAIN);
+  objc_setAssociatedObject(self.webView, kQualityModeIdKey, nsQualityModeId,
+                           OBJC_ASSOCIATION_RETAIN);
+  objc_setAssociatedObject(self.webView, kPaperSizeIdKey, nsPaperSizeId,
+                           OBJC_ASSOCIATION_RETAIN);
   objc_setAssociatedObject(self.webView, kMediaTypeKey, nsMediaType,
                            OBJC_ASSOCIATION_RETAIN);
 
   [nsPrinterId release];
   [nsColorMode release];
+  [nsQualityResolution release];
+  [nsQualityModeOption release];
+  [nsQualityModeId release];
+  [nsPaperSizeId release];
   [nsMediaType release];
   [nsCopies release];
   [nsQualityDpi release];
@@ -175,7 +203,12 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
   NSString *printerId = objc_getAssociatedObject(webView, kPrinterIdKey);
   NSString *colorMode = objc_getAssociatedObject(webView, kColorModeKey);
   int qualityDpi = [objc_getAssociatedObject(webView, kQualityDpiKey) intValue];
+  NSString *qualityResolution = objc_getAssociatedObject(webView, kQualityResolutionKey);
+  NSString *qualityModeOption = objc_getAssociatedObject(webView, kQualityModeOptionKey);
+  NSString *qualityModeId = objc_getAssociatedObject(webView, kQualityModeIdKey);
+  NSString *paperSizeId = objc_getAssociatedObject(webView, kPaperSizeIdKey);
   NSString *mediaType = objc_getAssociatedObject(webView, kMediaTypeKey);
+  int copies = [objc_getAssociatedObject(webView, kCopiesKey) intValue];
 
   // Write PDF to a temp file (CUPS daemon must be able to read it)
   NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:
@@ -209,11 +242,31 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
 
   addOpt("ColorModel", ([colorMode isEqualToString:@"grayscale"]) ? "Gray" : "RGB");
 
-  std::string qualityStr;
-  if (qualityDpi <= 150)       qualityStr = "Draft";
-  else if (qualityDpi <= 300)  qualityStr = "Normal";
-  else                         qualityStr = "High";
-  addOpt("cupsPrintQuality", qualityStr);
+  // "Resolution" is the PPD option that actually changes the print resolution
+  // (e.g. 720x720dpi). The old cupsPrintQuality value is not a PPD option on
+  // most drivers, so it was ignored and jobs stayed at the driver default.
+  if (qualityResolution.length > 0) {
+    addOpt("Resolution", [qualityResolution UTF8String]);
+  } else {
+    std::string qualityStr;
+    if (qualityDpi <= 150)       qualityStr = "3";
+    else if (qualityDpi <= 300)  qualityStr = "4";
+    else                         qualityStr = "5";
+    addOpt("print-quality", qualityStr);
+  }
+
+  if (qualityModeOption.length > 0 && qualityModeId.length > 0) {
+    addOpt([qualityModeOption UTF8String], [qualityModeId UTF8String]);
+  }
+
+  if (paperSizeId.length > 0) {
+    // PWG media name from cupsGetDestMediaByIndex; CUPS maps it to PageSize.
+    addOpt("media", [paperSizeId UTF8String]);
+  }
+
+  if (copies > 1) {
+    addOpt("copies", std::to_string(copies));
+  }
 
   if (mediaType.length > 0) {
     addOpt("MediaType", [mediaType UTF8String]);
@@ -307,10 +360,16 @@ Bridge::Bridge(webview::webview& w, std::unique_ptr<Printer> printer)
     int copies = opts.value("copies", 1);
     std::string colorMode = opts.value("colorMode", "color");
     int qualityDpi = opts.value("qualityDpi", 300);
+    std::string qualityResolution = opts.value("qualityResolution", "");
+    std::string qualityModeOption = opts.value("qualityModeOption", "");
+    std::string qualityModeId = opts.value("qualityModeId", "");
+    std::string paperSizeId = opts.value("paperSizeId", "");
     std::string mediaType = opts.value("mediaType", "");
 
-    NSLog(@"[Bridge] print: printer=%s copies=%d color=%s quality=%d",
-          printerId.c_str(), copies, colorMode.c_str(), qualityDpi);
+    NSLog(@"[Bridge] print: printer=%s copies=%d color=%s quality=%d resolution=%s mode=%s:%s",
+          printerId.c_str(), copies, colorMode.c_str(), qualityDpi,
+          qualityResolution.c_str(), qualityModeOption.c_str(),
+          qualityModeId.c_str());
 
     PrintHandler *handler = [[PrintHandler alloc] initWithWebview:&m_w
                                                           printId:id];
@@ -321,6 +380,10 @@ Bridge::Bridge(webview::webview& w, std::unique_ptr<Printer> printer)
                     copies:copies
                  colorMode:colorMode
                 qualityDpi:qualityDpi
+         qualityResolution:qualityResolution
+           qualityModeOption:qualityModeOption
+               qualityModeId:qualityModeId
+               paperSizeId:paperSizeId
                  mediaType:mediaType];
     [handler release];
 

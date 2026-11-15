@@ -11,11 +11,12 @@ function formatMediaTypeId(id: string): string {
     .join(' ')
 }
 
-export function mediaTypeName(id: string, t?: TFunction): string {
+export function mediaTypeName(id: string, t?: TFunction, fallbackName?: string): string {
   if (t) {
     const key = `mediaTypes.${id}`
     const translated = t(key, { defaultValue: null })
     if (translated !== null) return translated
   }
+  if (fallbackName) return fallbackName
   return formatMediaTypeId(id)
 }

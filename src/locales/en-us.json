@@ -201,6 +201,8 @@
     "mediaType": "Media Type",
     "paperType": "Paper",
     "quality": "Quality",
+    "qualityMode": "Print quality",
+    "resolution": "Resolution",
     "colorMode": "Color",
     "color": "Color",
     "grayscale": "Grayscale",

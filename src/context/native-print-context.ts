@@ -12,6 +12,8 @@ export interface NativePrintContextValue {
   setSelectedMediaTypeId: (id: string) => void
   selectedQualityDpi: number | null
   setSelectedQualityDpi: (dpi: number) => void
+  selectedQualityModeId: string | null
+  setSelectedQualityModeId: (id: string) => void
   colorMode: 'color' | 'grayscale'
   setColorMode: (mode: 'color' | 'grayscale') => void
   copies: number

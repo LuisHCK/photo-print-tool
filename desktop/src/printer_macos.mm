@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include <cups/cups.h>
+#include <cups/ppd.h>
 #include <cups/pwg.h>
 
 #import <WebKit/WebKit.h>
@@ -12,9 +13,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <utility>
 #include <vector>
 
 using json = nlohmann::json;
+
+// CUPS' modern cupsCopyDestInfo API does not expose the PPD choice names and
+// human-readable texts we need here (e.g. Resolution "720x720dpi", MediaType
+// "Photo Paper Glossy"), so the deprecated PPD helpers are still used. Keep
+// the warning suppression scoped to this file.
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
 // Offscreen WKWebView helper — must be at file scope (outside C++ namespace)
 @interface PrintRenderer : NSObject <WKNavigationDelegate>
@@ -130,6 +138,57 @@ std::string format_dimensions(int width_hmm, int length_hmm) {
   return buf;
 }
 
+// --- Resolution helpers ---
+
+struct ResolutionChoice {
+  int x = 0;
+  int y = 0;
+  std::string value;  // PPD choice name, e.g. "720x720dpi"
+};
+
+// PPD resolution choices are named like "720x720dpi", "600dpi" or "1200dpi".
+bool parse_resolution_option(const char* value, int* x, int* y) {
+  if (!value || value[0] == '\0') return false;
+
+  int parsed_x = 0;
+  int parsed_y = 0;
+  if (sscanf(value, "%dx%d", &parsed_x, &parsed_y) < 1 || parsed_x <= 0) {
+    return false;
+  }
+  if (parsed_y <= 0) parsed_y = parsed_x;
+
+  *x = parsed_x;
+  *y = parsed_y;
+  return true;
+}
+
+std::string format_resolution_option(int x, int y) {
+  char buf[64];
+  snprintf(buf, sizeof(buf), "%dx%ddpi", x, y);
+  return buf;
+}
+
+std::string trim_text(const char* value) {
+  if (!value) return {};
+  std::string text(value);
+  size_t first = text.find_first_not_of(" \t\r\n");
+  if (first == std::string::npos) return {};
+  size_t last = text.find_last_not_of(" \t\r\n");
+  return text.substr(first, last - first + 1);
+}
+
+// Open the destination's PPD so we can read the driver's real option choices
+// (Resolution, MediaType). cupsGetPPD2 is deprecated in favour of
+// cupsCopyDestInfo, but the latter does not expose PPD choice names/texts.
+ppd_file_t* open_printer_ppd(http_t* http, const char* printer) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  const char* path = cupsGetPPD2(http, printer);
+  ppd_file_t* ppd = path ? ppdOpenFile(path) : nullptr;
+#pragma clang diagnostic pop
+  return ppd;
+}
+
 // Resolve a human-readable paper name via localization or PWG lookup
 std::string resolve_paper_display_name(http_t* http, cups_dest_t* dest,
                                         cups_dinfo_t* dinfo,
@@ -170,6 +229,7 @@ public:
 private:
   json collectPapers(http_t* http, cups_dest_t* dest, cups_dinfo_t* dinfo);
   json collectQualities(http_t* http, cups_dest_t* dest, cups_dinfo_t* dinfo);
+  json collectQualityModes(http_t* http, cups_dest_t* dest);
   json collectMediaTypes(http_t* http, cups_dest_t* dest, cups_dinfo_t* dinfo);
 };
 
@@ -197,6 +257,7 @@ std::string MacPrinter::getPrinters() {
       // No capability info available; emit printer with empty capability lists
       p["paperSizes"] = json::array();
       p["qualities"] = json::array();
+      p["qualityModes"] = json::array();
       p["paperTypes"] = json::array();
       p["supportsColor"] = false;
       p["supportsGrayscale"] = false;
@@ -206,6 +267,7 @@ std::string MacPrinter::getPrinters() {
 
     json papers = collectPapers(http, dest, dinfo.get());
     json qualities = collectQualities(http, dest, dinfo.get());
+    json quality_modes = collectQualityModes(http, dest);
     json media_types = collectMediaTypes(http, dest, dinfo.get());
 
     bool supports_color = false;
@@ -231,6 +293,7 @@ std::string MacPrinter::getPrinters() {
 
     p["paperSizes"] = std::move(papers);
     p["qualities"] = std::move(qualities);
+    p["qualityModes"] = std::move(quality_modes);
     p["paperTypes"] = std::move(media_types);
     p["supportsColor"] = supports_color;
     p["supportsGrayscale"] = supports_grayscale;
@@ -253,10 +316,16 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
   int copies = opts.value("copies", 1);
   std::string colorMode = opts.value("colorMode", "color");
   int qualityDpi = opts.value("qualityDpi", 300);
+  std::string qualityResolution = opts.value("qualityResolution", "");
+  std::string qualityModeOption = opts.value("qualityModeOption", "");
+  std::string qualityModeId = opts.value("qualityModeId", "");
+  std::string paperSizeId = opts.value("paperSizeId", "");
   std::string mediaType = opts.value("mediaType", "");
 
-  NSLog(@"[MacPrinter::print] printerId=%s copies=%d colorMode=%s qualityDpi=%d mediaType=%s",
-        printerId.c_str(), copies, colorMode.c_str(), qualityDpi, mediaType.c_str());
+  NSLog(@"[MacPrinter::print] printerId=%s copies=%d colorMode=%s qualityDpi=%d resolution=%s qualityMode=%s:%s mediaType=%s paperSize=%s",
+        printerId.c_str(), copies, colorMode.c_str(), qualityDpi,
+        qualityResolution.c_str(), qualityModeOption.c_str(),
+        qualityModeId.c_str(), mediaType.c_str(), paperSizeId.c_str());
   NSLog(@"[MacPrinter::print] pageWidthMm=%.1f pageHeightMm=%.1f pageHtml_len=%zu",
         widthMm, heightMm, pageHtml.size());
 
@@ -335,11 +404,34 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
 
   add_opt("ColorModel", (colorMode == "grayscale") ? "Gray" : "RGB");
 
-  std::string qualityStr;
-  if (qualityDpi <= 150)       qualityStr = "Draft";
-  else if (qualityDpi <= 300)  qualityStr = "Normal";
-  else                         qualityStr = "High";
-  add_opt("cupsPrintQuality", qualityStr);
+  // This is the option that actually changes the print head resolution. The
+  // old cupsPrintQuality value is not a PPD option on most drivers (and is not
+  // present on the Epson PPD), so it was silently ignored and jobs stayed at
+  // the driver default (often 360 dpi).
+  if (!qualityResolution.empty()) {
+    add_opt("Resolution", qualityResolution);
+  } else {
+    std::string qualityStr;
+    if (qualityDpi <= 150)       qualityStr = "3";
+    else if (qualityDpi <= 300)  qualityStr = "4";
+    else                         qualityStr = "5";
+    add_opt("print-quality", qualityStr);
+  }
+
+  // Driver-specific quality mode (Epson EPIJ_Qual, HP PrintQuality, ...).
+  if (!qualityModeOption.empty() && !qualityModeId.empty()) {
+    add_opt(qualityModeOption, qualityModeId);
+  }
+
+  if (!paperSizeId.empty()) {
+    // PWG media name, from cupsGetDestMediaByIndex (e.g.
+    // "na_index-4x6_4x6in"). CUPS maps it to the driver's PageSize choice.
+    add_opt("media", paperSizeId);
+  }
+
+  if (copies > 1) {
+    add_opt("copies", std::to_string(copies));
+  }
 
   if (!mediaType.empty()) {
     add_opt("MediaType", mediaType);
@@ -403,7 +495,78 @@ json MacPrinter::collectPapers(http_t* http, cups_dest_t* dest,
 json MacPrinter::collectQualities(http_t* http, cups_dest_t* dest,
                                    cups_dinfo_t* dinfo) {
   json qualities = json::array();
+  std::vector<ResolutionChoice> resolutions;
 
+  // The CUPS print dialog exposes the PPD "Resolution" option. Prefer it over
+  // the coarse print-quality enum, because the enum only tells us
+  // draft/normal/high - not the raster resolution the driver will actually use.
+  if (ppd_file_t* ppd = open_printer_ppd(http, dest->name)) {
+    if (ppd_option_t* option = ppdFindOption(ppd, "Resolution")) {
+      for (int i = 0; i < option->num_choices; ++i) {
+        int x = 0;
+        int y = 0;
+        if (parse_resolution_option(option->choices[i].choice, &x, &y)) {
+          resolutions.push_back({x, y, option->choices[i].choice});
+        }
+      }
+    }
+    ppdClose(ppd);
+  }
+
+  // Driverless (IPP Everywhere/AirPrint) queues may only advertise
+  // printer-resolution-supported.
+  if (resolutions.empty()) {
+    ipp_attribute_t* rattr = cupsFindDestSupported(
+        http, dest, dinfo, "printer-resolution");
+    if (rattr) {
+      int rcount = ippGetCount(rattr);
+      for (int j = 0; j < rcount; ++j) {
+        int y = 0;
+        ipp_res_t units = IPP_RES_PER_INCH;
+        int x = ippGetResolution(rattr, j, &y, &units);
+        if (x <= 0) continue;
+        if (y <= 0) y = x;
+        if (units == IPP_RES_PER_CM) {
+          x = static_cast<int>(std::lround(x * 2.54));
+          y = static_cast<int>(std::lround(y * 2.54));
+        }
+        resolutions.push_back({x, y, format_resolution_option(x, y)});
+      }
+    }
+  }
+
+  std::sort(resolutions.begin(), resolutions.end(),
+            [](const ResolutionChoice& a, const ResolutionChoice& b) {
+              return a.x == b.x ? a.y < b.y : a.x < b.x;
+            });
+  resolutions.erase(
+      std::unique(resolutions.begin(), resolutions.end(),
+                  [](const ResolutionChoice& a, const ResolutionChoice& b) {
+                    return a.x == b.x && a.y == b.y;
+                  }),
+      resolutions.end());
+
+  if (!resolutions.empty()) {
+    for (size_t i = 0; i < resolutions.size(); ++i) {
+      const char* name = "Normal";
+      if (resolutions.size() > 1) {
+        if (i == 0) name = "Draft";
+        else if (i + 1 == resolutions.size()) name = "Best";
+      }
+
+      json q;
+      q["dpi"] = resolutions[i].x;
+      q["x"] = resolutions[i].x;
+      q["y"] = resolutions[i].y;
+      q["name"] = name;
+      q["resolution"] = resolutions[i].value;
+      qualities.push_back(std::move(q));
+    }
+    return qualities;
+  }
+
+  // Last resort: the generic print-quality enum. These do not carry a real
+  // resolution, so only use them when the printer does not expose any.
   ipp_attribute_t* qattr = cupsFindDestSupported(
       http, dest, dinfo, CUPS_PRINT_QUALITY);
   if (!qattr) return qualities;
@@ -427,9 +590,63 @@ json MacPrinter::collectQualities(http_t* http, cups_dest_t* dest,
   return qualities;
 }
 
+json MacPrinter::collectQualityModes(http_t* http, cups_dest_t* dest) {
+  json modes = json::array();
+
+  // Driver-specific quality modes (passes/dot size, distinct from resolution).
+  // Epson exposes EPIJ_Qual ("Draft" … "Best Quality"), HP uses PrintQuality,
+  // and many other PPDs use a plain Quality option.
+  if (ppd_file_t* ppd = open_printer_ppd(http, dest->name)) {
+    static const char* const kQualityOptionKeywords[] = {
+        "PrintQuality", "EPIJ_Qual", "Quality"};
+    for (const char* keyword : kQualityOptionKeywords) {
+      ppd_option_t* option = ppdFindOption(ppd, keyword);
+      if (!option || option->num_choices < 2) continue;
+
+      for (int i = 0; i < option->num_choices; ++i) {
+        const char* id = option->choices[i].choice;
+        if (!id || id[0] == '\0') continue;
+
+        json m;
+        m["option"] = keyword;
+        m["id"] = id;
+        std::string text = trim_text(option->choices[i].text);
+        m["name"] = text.empty() ? std::string(id) : text;
+        if (std::strcmp(id, option->defchoice) == 0) m["isDefault"] = true;
+        modes.push_back(std::move(m));
+      }
+      break;
+    }
+    ppdClose(ppd);
+  }
+
+  return modes;
+}
+
 json MacPrinter::collectMediaTypes(http_t* http, cups_dest_t* dest,
-                                    cups_dinfo_t* dinfo) {
-  json media_types = json::array();
+                                    cups_dinfo_t* dinfo) {  json media_types = json::array();
+
+  // The PPD options carry the driver's human-readable media names, which the
+  // raw media-type-supported values do not (they are numeric driver ids like
+  // "145"). Names matter here: plain paper vs photo paper changes ink/color
+  // handling significantly.
+  if (ppd_file_t* ppd = open_printer_ppd(http, dest->name)) {
+    if (ppd_option_t* option = ppdFindOption(ppd, "MediaType")) {
+      for (int i = 0; i < option->num_choices; ++i) {
+        const char* id = option->choices[i].choice;
+        if (!id || id[0] == '\0') continue;
+
+        json m;
+        m["id"] = id;
+        std::string text = trim_text(option->choices[i].text);
+        if (!text.empty()) m["name"] = text;
+        media_types.push_back(std::move(m));
+      }
+    }
+    ppdClose(ppd);
+  }
+
+  if (!media_types.empty()) return media_types;
 
   ipp_attribute_t* tattr = cupsFindDestSupported(
       http, dest, dinfo, CUPS_MEDIA_TYPE);
@@ -449,7 +666,14 @@ json MacPrinter::collectMediaTypes(http_t* http, cups_dest_t* dest,
     } else {
       const char* raw_id = ippGetString(tattr, j, nullptr);
       if (raw_id && raw_id[0] != '\0') {
-        media_types.push_back({{"id", raw_id}});
+        json m = {{"id", raw_id}};
+        const char* localized = cupsLocalizeDestValue(
+            http, dest, dinfo, CUPS_MEDIA_TYPE, raw_id);
+        if (localized && localized[0] != '\0' &&
+            std::strcmp(localized, raw_id) != 0) {
+          m["name"] = localized;
+        }
+        media_types.push_back(std::move(m));
       }
     }
   }

@@ -14,7 +14,11 @@ namespace photo_print {
 ///     "copies": number,
 ///     "colorMode": "color" | "grayscale",
 ///     "qualityDpi": number,
-///     "mediaType": string      // optional
+///     "qualityResolution": string,  // optional PPD resolution, e.g. "720x720dpi"
+///     "qualityModeOption": string,  // optional PPD quality option keyword, e.g. "EPIJ_Qual"
+///     "qualityModeId": string,      // optional PPD quality choice, e.g. "307"
+///     "paperSizeId": string,        // optional PWG media name, e.g. "na_index-4x6_4x6in"
+///     "mediaType": string           // optional
 ///   }
 ///
 /// Output:
