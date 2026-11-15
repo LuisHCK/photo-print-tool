@@ -1,4 +1,5 @@
 #include "bridge.h"
+#include "printer_macos.h"
 
 #import <Cocoa/Cocoa.h>
 #import <WebKit/WebKit.h>
@@ -231,45 +232,27 @@ static const void *kMediaTypeKey  = &kMediaTypeKey;
   chmod(cPath, 0644);
 
   // Build CUPS options
+  // The option set (including driver-specific companion options) is shared
+  // with MacPrinter so both print paths send identical jobs.
+  auto str = [](NSString *s) { return std::string(s ? [s UTF8String] : ""); };
+  photo_print::JobSettings settings;
+  settings.printerId = str(printerId);
+  settings.colorMode = str(colorMode);
+  settings.qualityDpi = qualityDpi;
+  settings.qualityResolution = str(qualityResolution);
+  settings.qualityModeOption = str(qualityModeOption);
+  settings.qualityModeId = str(qualityModeId);
+  settings.paperSizeId = str(paperSizeId);
+  settings.mediaType = str(mediaType);
+  settings.copies = copies;
+
   std::vector<cups_option_t> cupsOpts;
-
-  auto addOpt = [&](const std::string &name, const std::string &value) {
+  for (const auto &kv : photo_print::build_job_options(settings)) {
     cups_option_t o;
-    o.name = strdup(name.c_str());
-    o.value = strdup(value.c_str());
+    o.name = strdup(kv.first.c_str());
+    o.value = strdup(kv.second.c_str());
     cupsOpts.push_back(o);
-  };
-
-  addOpt("ColorModel", ([colorMode isEqualToString:@"grayscale"]) ? "Gray" : "RGB");
-
-  // "Resolution" is the PPD option that actually changes the print resolution
-  // (e.g. 720x720dpi). The old cupsPrintQuality value is not a PPD option on
-  // most drivers, so it was ignored and jobs stayed at the driver default.
-  if (qualityResolution.length > 0) {
-    addOpt("Resolution", [qualityResolution UTF8String]);
-  } else {
-    std::string qualityStr;
-    if (qualityDpi <= 150)       qualityStr = "3";
-    else if (qualityDpi <= 300)  qualityStr = "4";
-    else                         qualityStr = "5";
-    addOpt("print-quality", qualityStr);
-  }
-
-  if (qualityModeOption.length > 0 && qualityModeId.length > 0) {
-    addOpt([qualityModeOption UTF8String], [qualityModeId UTF8String]);
-  }
-
-  if (paperSizeId.length > 0) {
-    // PWG media name from cupsGetDestMediaByIndex; CUPS maps it to PageSize.
-    addOpt("media", [paperSizeId UTF8String]);
-  }
-
-  if (copies > 1) {
-    addOpt("copies", std::to_string(copies));
-  }
-
-  if (mediaType.length > 0) {
-    addOpt("MediaType", [mediaType UTF8String]);
+    NSLog(@"[PrintHandler] option %s=%s", o.name, o.value);
   }
 
   const char *printer = [printerId UTF8String];

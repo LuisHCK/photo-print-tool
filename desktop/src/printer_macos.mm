@@ -1,4 +1,5 @@
 #include "printer.h"
+#include "printer_macos.h"
 
 #include <nlohmann/json.hpp>
 
@@ -248,6 +249,99 @@ std::string resolve_paper_display_name(http_t* http, cups_dest_t* dest,
 
 } // anonymous namespace
 
+std::vector<std::pair<std::string, std::string>> build_job_options(
+    const JobSettings& settings) {
+  std::vector<std::pair<std::string, std::string>> opts;
+  auto add_opt = [&](const std::string& name, const std::string& value) {
+    opts.emplace_back(name, value);
+  };
+
+  // Unlike the macOS print dialog (which applies the driver's presets), a raw
+  // CUPS job only gets the options we send; everything else falls back to the
+  // PPD defaults. Use the PPD to send valid choices and the companion options
+  // vendor drivers need for a setting to take effect.
+  CupsConnection http;
+  ppd_file_t* ppd = open_printer_ppd(http ? http.http : CUPS_HTTP_DEFAULT,
+                                     settings.printerId.c_str());
+
+  const bool grayscale = settings.colorMode == "grayscale";
+  add_opt("print-color-mode", grayscale ? CUPS_PRINT_COLOR_MODE_MONOCHROME
+                                        : CUPS_PRINT_COLOR_MODE_COLOR);
+  if (ppd && ppdFindOption(ppd, "ColorModel")) {
+    const char* model = grayscale
+        ? ppd_first_choice(ppd, "ColorModel", {"Gray", "Mono", "Grayscale", "KGray"})
+        : ppd_first_choice(ppd, "ColorModel", {"RGB", "Color", "CMYK", "RGBW"});
+    if (model) add_opt("ColorModel", model);
+  } else if (!ppd) {
+    add_opt("ColorModel", grayscale ? "Gray" : "RGB");
+  }
+  // Epson: the "Grayscale" option (EPIJ_Ink_) drives the ink selection.
+  if (ppd_has_choice(ppd, "EPIJ_Ink_", grayscale ? "0" : "1")) {
+    add_opt("EPIJ_Ink_", grayscale ? "0" : "1");
+  }
+
+  // This is the option that actually changes the print head resolution. The
+  // old cupsPrintQuality value is not a PPD option on most drivers (and is not
+  // present on the Epson PPD), so it was silently ignored and jobs stayed at
+  // the driver default (often 360 dpi).
+  if (!settings.qualityResolution.empty() &&
+      (!ppd || ppd_has_choice(ppd, "Resolution", settings.qualityResolution.c_str()))) {
+    add_opt("Resolution", settings.qualityResolution);
+  } else {
+    std::string qualityStr;
+    if (settings.qualityDpi <= 150)      qualityStr = "3";
+    else if (settings.qualityDpi <= 300) qualityStr = "4";
+    else                                 qualityStr = "5";
+    add_opt("print-quality", qualityStr);
+  }
+
+  // Driver-specific quality mode (Epson EPIJ_Qual, HP PrintQuality, ...).
+  if (!settings.qualityModeOption.empty() && !settings.qualityModeId.empty()) {
+    add_opt(settings.qualityModeOption, settings.qualityModeId);
+
+    // Epson ignores EPIJ_Qual unless Mode is "Advanced"; the PPD default is
+    // "Automatic", which prints at Standard quality (EPIJ_APri) regardless of
+    // the selected quality - faster and lower resolution than requested.
+    if (settings.qualityModeOption == "EPIJ_Qual") {
+      const char* advanced = ppd_choice_by_text(ppd, "EPIJ_Mode", "Advanced");
+      if (!advanced) advanced = ppd_first_choice(ppd, "EPIJ_Mode", {"3"});
+      if (advanced) add_opt("EPIJ_Mode", advanced);
+
+      // Match Epson's own presets (EPIJPrinterPreset): the rest of the set is
+      // sent explicitly so no PPD default can override it, and the Automatic
+      // priority is forced to "Quality" in case the mode is not honoured.
+      if (ppd_has_choice(ppd, "EPIJ_Hori", "0")) add_opt("EPIJ_Hori", "0");
+      if (const char* priority = ppd_choice_by_text(ppd, "EPIJ_APri", "Quality")) {
+        add_opt("EPIJ_APri", priority);
+      }
+    }
+  }
+
+  if (!settings.paperSizeId.empty()) {
+    // PWG media name, from cupsGetDestMediaByIndex (e.g.
+    // "na_index-4x6_4x6in"). CUPS maps it to the driver's PageSize choice.
+    add_opt("media", settings.paperSizeId);
+  }
+
+  if (settings.copies > 1) {
+    add_opt("copies", std::to_string(settings.copies));
+  }
+
+  if (!settings.mediaType.empty()) {
+    add_opt("MediaType", settings.mediaType);
+    // Epson's filter selects the ink profile from EPIJ_Medi, not MediaType;
+    // without it photo paper is printed with the plain-paper profile, which
+    // looks washed out.
+    if (ppd_has_choice(ppd, "EPIJ_Medi", settings.mediaType.c_str())) {
+      add_opt("EPIJ_Medi", settings.mediaType);
+    }
+  }
+
+  if (ppd) ppdClose(ppd);
+
+  return opts;
+}
+
 // --- MacPrinter ---
 
 class MacPrinter : public Printer {
@@ -421,100 +515,26 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
   }
   NSLog(@"[MacPrinter::print] temp PDF written to %s", [tmpPath UTF8String]);
 
-  // Build CUPS job options from the frontend settings
-  std::vector<cups_option_t> cupsOpts;
+  JobSettings settings;
+  settings.printerId = printerId;
+  settings.colorMode = colorMode;
+  settings.qualityDpi = qualityDpi;
+  settings.qualityResolution = qualityResolution;
+  settings.qualityModeOption = qualityModeOption;
+  settings.qualityModeId = qualityModeId;
+  settings.paperSizeId = paperSizeId;
+  settings.mediaType = mediaType;
+  settings.copies = copies;
 
-  auto add_opt = [&](const std::string& name, const std::string& value) {
+  std::vector<cups_option_t> cupsOpts;
+  for (const auto& kv : build_job_options(settings)) {
     cups_option_t o;
-    o.name = strdup(name.c_str());
-    o.value = strdup(value.c_str());
+    o.name = strdup(kv.first.c_str());
+    o.value = strdup(kv.second.c_str());
     cupsOpts.push_back(o);
-  };
+  }
 
   const char *printer = printerId.c_str();
-
-  // Unlike the macOS print dialog (which applies the driver's presets), a raw
-  // CUPS job only gets the options we send; everything else falls back to the
-  // PPD defaults. Use the PPD to send valid choices and the companion options
-  // vendor drivers need for a setting to take effect.
-  CupsConnection http;
-  ppd_file_t* ppd = open_printer_ppd(http ? http.http : CUPS_HTTP_DEFAULT,
-                                     printer);
-
-  const bool grayscale = colorMode == "grayscale";
-  add_opt("print-color-mode", grayscale ? CUPS_PRINT_COLOR_MODE_MONOCHROME
-                                        : CUPS_PRINT_COLOR_MODE_COLOR);
-  if (ppd && ppdFindOption(ppd, "ColorModel")) {
-    const char* model = grayscale
-        ? ppd_first_choice(ppd, "ColorModel", {"Gray", "Mono", "Grayscale", "KGray"})
-        : ppd_first_choice(ppd, "ColorModel", {"RGB", "Color", "CMYK", "RGBW"});
-    if (model) add_opt("ColorModel", model);
-  } else if (!ppd) {
-    add_opt("ColorModel", grayscale ? "Gray" : "RGB");
-  }
-  // Epson: the "Grayscale" option (EPIJ_Ink_) drives the ink selection.
-  if (ppd_has_choice(ppd, "EPIJ_Ink_", grayscale ? "0" : "1")) {
-    add_opt("EPIJ_Ink_", grayscale ? "0" : "1");
-  }
-
-  // This is the option that actually changes the print head resolution. The
-  // old cupsPrintQuality value is not a PPD option on most drivers (and is not
-  // present on the Epson PPD), so it was silently ignored and jobs stayed at
-  // the driver default (often 360 dpi).
-  if (!qualityResolution.empty() &&
-      (!ppd || ppd_has_choice(ppd, "Resolution", qualityResolution.c_str()))) {
-    add_opt("Resolution", qualityResolution);
-  } else {
-    std::string qualityStr;
-    if (qualityDpi <= 150)       qualityStr = "3";
-    else if (qualityDpi <= 300)  qualityStr = "4";
-    else                         qualityStr = "5";
-    add_opt("print-quality", qualityStr);
-  }
-
-  // Driver-specific quality mode (Epson EPIJ_Qual, HP PrintQuality, ...).
-  if (!qualityModeOption.empty() && !qualityModeId.empty()) {
-    add_opt(qualityModeOption, qualityModeId);
-
-    // Epson ignores EPIJ_Qual unless Mode is "Advanced"; the PPD default is
-    // "Automatic", which prints at Standard quality (EPIJ_APri) regardless of
-    // the selected quality - faster and lower resolution than requested.
-    if (qualityModeOption == "EPIJ_Qual") {
-      const char* advanced = ppd_choice_by_text(ppd, "EPIJ_Mode", "Advanced");
-      if (!advanced) advanced = ppd_first_choice(ppd, "EPIJ_Mode", {"3"});
-      if (advanced) add_opt("EPIJ_Mode", advanced);
-
-      // Match Epson's own presets (EPIJPrinterPreset): the rest of the set is
-      // sent explicitly so no PPD default can override it, and the Automatic
-      // priority is forced to "Quality" in case the mode is not honoured.
-      if (ppd_has_choice(ppd, "EPIJ_Hori", "0")) add_opt("EPIJ_Hori", "0");
-      if (const char* priority = ppd_choice_by_text(ppd, "EPIJ_APri", "Quality")) {
-        add_opt("EPIJ_APri", priority);
-      }
-    }
-  }
-
-  if (!paperSizeId.empty()) {
-    // PWG media name, from cupsGetDestMediaByIndex (e.g.
-    // "na_index-4x6_4x6in"). CUPS maps it to the driver's PageSize choice.
-    add_opt("media", paperSizeId);
-  }
-
-  if (copies > 1) {
-    add_opt("copies", std::to_string(copies));
-  }
-
-  if (!mediaType.empty()) {
-    add_opt("MediaType", mediaType);
-    // Epson's filter selects the ink profile from EPIJ_Medi, not MediaType;
-    // without it photo paper is printed with the plain-paper profile, which
-    // looks washed out.
-    if (ppd_has_choice(ppd, "EPIJ_Medi", mediaType.c_str())) {
-      add_opt("EPIJ_Medi", mediaType);
-    }
-  }
-
-  if (ppd) ppdClose(ppd);
 
   for (const auto& o : cupsOpts) {
     NSLog(@"[MacPrinter::print] option %s=%s", o.name, o.value);
