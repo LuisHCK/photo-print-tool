@@ -12,7 +12,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <initializer_list>
 #include <string>
+#include <strings.h>
 #include <utility>
 #include <vector>
 
@@ -187,6 +189,33 @@ ppd_file_t* open_printer_ppd(http_t* http, const char* printer) {
   ppd_file_t* ppd = path ? ppdOpenFile(path) : nullptr;
 #pragma clang diagnostic pop
   return ppd;
+}
+
+bool ppd_has_choice(ppd_file_t* ppd, const char* option, const char* choice) {
+  return ppd && choice && choice[0] != '\0' &&
+         ppdFindChoice(ppdFindOption(ppd, option), choice) != nullptr;
+}
+
+// Returns the first candidate that is a valid choice for `option`, or nullptr.
+const char* ppd_first_choice(ppd_file_t* ppd, const char* option,
+                             std::initializer_list<const char*> candidates) {
+  for (const char* c : candidates) {
+    if (ppd_has_choice(ppd, option, c)) return c;
+  }
+  return nullptr;
+}
+
+// Returns the choice whose human-readable text matches `text` (case-insensitive).
+const char* ppd_choice_by_text(ppd_file_t* ppd, const char* option,
+                               const char* text) {
+  ppd_option_t* o = ppd ? ppdFindOption(ppd, option) : nullptr;
+  if (!o) return nullptr;
+  for (int i = 0; i < o->num_choices; ++i) {
+    if (strcasecmp(trim_text(o->choices[i].text).c_str(), text) == 0) {
+      return o->choices[i].choice;
+    }
+  }
+  return nullptr;
 }
 
 // Resolve a human-readable paper name via localization or PWG lookup
@@ -402,13 +431,38 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
     cupsOpts.push_back(o);
   };
 
-  add_opt("ColorModel", (colorMode == "grayscale") ? "Gray" : "RGB");
+  const char *printer = printerId.c_str();
+
+  // Unlike the macOS print dialog (which applies the driver's presets), a raw
+  // CUPS job only gets the options we send; everything else falls back to the
+  // PPD defaults. Use the PPD to send valid choices and the companion options
+  // vendor drivers need for a setting to take effect.
+  CupsConnection http;
+  ppd_file_t* ppd = open_printer_ppd(http ? http.http : CUPS_HTTP_DEFAULT,
+                                     printer);
+
+  const bool grayscale = colorMode == "grayscale";
+  add_opt("print-color-mode", grayscale ? CUPS_PRINT_COLOR_MODE_MONOCHROME
+                                        : CUPS_PRINT_COLOR_MODE_COLOR);
+  if (ppd && ppdFindOption(ppd, "ColorModel")) {
+    const char* model = grayscale
+        ? ppd_first_choice(ppd, "ColorModel", {"Gray", "Mono", "Grayscale", "KGray"})
+        : ppd_first_choice(ppd, "ColorModel", {"RGB", "Color", "CMYK", "RGBW"});
+    if (model) add_opt("ColorModel", model);
+  } else if (!ppd) {
+    add_opt("ColorModel", grayscale ? "Gray" : "RGB");
+  }
+  // Epson: the "Grayscale" option (EPIJ_Ink_) drives the ink selection.
+  if (ppd_has_choice(ppd, "EPIJ_Ink_", grayscale ? "0" : "1")) {
+    add_opt("EPIJ_Ink_", grayscale ? "0" : "1");
+  }
 
   // This is the option that actually changes the print head resolution. The
   // old cupsPrintQuality value is not a PPD option on most drivers (and is not
   // present on the Epson PPD), so it was silently ignored and jobs stayed at
   // the driver default (often 360 dpi).
-  if (!qualityResolution.empty()) {
+  if (!qualityResolution.empty() &&
+      (!ppd || ppd_has_choice(ppd, "Resolution", qualityResolution.c_str()))) {
     add_opt("Resolution", qualityResolution);
   } else {
     std::string qualityStr;
@@ -421,6 +475,23 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
   // Driver-specific quality mode (Epson EPIJ_Qual, HP PrintQuality, ...).
   if (!qualityModeOption.empty() && !qualityModeId.empty()) {
     add_opt(qualityModeOption, qualityModeId);
+
+    // Epson ignores EPIJ_Qual unless Mode is "Advanced"; the PPD default is
+    // "Automatic", which prints at Standard quality (EPIJ_APri) regardless of
+    // the selected quality - faster and lower resolution than requested.
+    if (qualityModeOption == "EPIJ_Qual") {
+      const char* advanced = ppd_choice_by_text(ppd, "EPIJ_Mode", "Advanced");
+      if (!advanced) advanced = ppd_first_choice(ppd, "EPIJ_Mode", {"3"});
+      if (advanced) add_opt("EPIJ_Mode", advanced);
+
+      // Match Epson's own presets (EPIJPrinterPreset): the rest of the set is
+      // sent explicitly so no PPD default can override it, and the Automatic
+      // priority is forced to "Quality" in case the mode is not honoured.
+      if (ppd_has_choice(ppd, "EPIJ_Hori", "0")) add_opt("EPIJ_Hori", "0");
+      if (const char* priority = ppd_choice_by_text(ppd, "EPIJ_APri", "Quality")) {
+        add_opt("EPIJ_APri", priority);
+      }
+    }
   }
 
   if (!paperSizeId.empty()) {
@@ -435,9 +506,20 @@ std::string MacPrinter::print(const std::string& jsonOptions) {
 
   if (!mediaType.empty()) {
     add_opt("MediaType", mediaType);
+    // Epson's filter selects the ink profile from EPIJ_Medi, not MediaType;
+    // without it photo paper is printed with the plain-paper profile, which
+    // looks washed out.
+    if (ppd_has_choice(ppd, "EPIJ_Medi", mediaType.c_str())) {
+      add_opt("EPIJ_Medi", mediaType);
+    }
   }
 
-  const char *printer = printerId.c_str();
+  if (ppd) ppdClose(ppd);
+
+  for (const auto& o : cupsOpts) {
+    NSLog(@"[MacPrinter::print] option %s=%s", o.name, o.value);
+  }
+
   const char *filePath = [tmpPath fileSystemRepresentation];
 
   NSLog(@"[MacPrinter::print] calling cupsPrintFile(printer=%s, opts_count=%zu)...",
